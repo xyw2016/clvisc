@@ -33,7 +33,7 @@ def from_sd_to_ed(entropy, eos):
     return f_ed(entropy)
 
 
-def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', oneshot=False):
+def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_invariance=True,oneshot=False):
     ''' Run event_by_event hydro, with initial condition 
     from smearing on the particle list'''
 
@@ -89,46 +89,92 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', oneshot
             scale_factor = 151.0
 
     grid_max = cfg.NX/2 * cfg.DX
+    eta_max = cfg.NZ/2 * cfg.DZ
 
     fini = os.path.join(fout, 'trento_ini/')
 
     if os.path.exists(fini):
         call(['rm', '-r', fini])
 
-    if oneshot:
-        collision.create_ini(cent, fini, num_of_events=,
-                         grid_max=grid_max, grid_step=cfg.DX,
-                         one_shot_ini=oneshot)
-        s = np.loadtxt(os.path.join(fini, 'one_shot_ini.dat'))
-    else:
-        collision.create_ini(cent, fini, num_of_events=1,
-                         grid_max=grid_max, grid_step=cfg.DX,
-                         one_shot_ini=oneshot)
-        s = np.loadtxt(os.path.join(fini, '0.dat'))
-    smax = s.max()
-    s_scale = s * scale_factor
-    t0 = time()
-
-    visc = CLVisc(cfg, gpu_id=gpu_id)
-
-    ed = from_sd_to_ed(s_scale, visc.ideal.eos)
-
     ev = np.zeros((cfg.NX*cfg.NY*cfg.NZ, 4), cfg.real)
+    if not boost_invariance：
 
-    # repeat the ed(x,y) NZ times
-    ev[:, 0] = np.repeat((ed.T).flatten(), cfg.NZ)
+        if oneshot:
+            collision.create_ini(cent, fini, num_of_events=100,
+                             grid_max=grid_max, grid_step=cfg.DX,
+                             one_shot_ini=oneshot)
+            s = np.loadtxt(os.path.join(fini, 'one_shot_ini.dat'))
+        else:
+            collision.create_ini(cent, fini, num_of_events=1,
+                             grid_max=grid_max, grid_step=cfg.DX,
+                             one_shot_ini=oneshot)
+        s = np.loadtxt(os.path.join(fini, '0.dat'))
+        smax = s.max()
+        s_scale = s * scale_factor
+        t0 = time()
 
-    eta_max = cfg.NZ//2 * cfg.DZ
-    eta = np.linspace(-eta_max, eta_max, cfg.NZ)
+        visc = CLVisc(cfg, gpu_id=gpu_id)
 
-    heta = np.ones(cfg.NZ)
+        ed = from_sd_to_ed(s_scale, visc.ideal.eos)
 
-    fall_off = np.abs(eta) > cfg.Eta_flat
-    eta_fall = np.abs(eta[fall_off])
-    heta[fall_off] = np.exp(-(eta_fall - cfg.Eta_flat)**2/(2.0*cfg.Eta_gw**2))
+        
 
-    # apply the heta longitudinal distribution
-    ev[:, 0] *= np.tile(heta, cfg.NX * cfg.NY)
+        # repeat the ed(x,y) NZ times
+        ev[:, 0] = np.repeat((ed.T).flatten(), cfg.NZ)
+
+        eta_max = cfg.NZ//2 * cfg.DZ
+        eta = np.linspace(-eta_max, eta_max, cfg.NZ)
+
+        heta = np.ones(cfg.NZ)
+
+        fall_off = np.abs(eta) > cfg.Eta_flat
+        eta_fall = np.abs(eta[fall_off])
+        heta[fall_off] = np.exp(-(eta_fall - cfg.Eta_flat)**2/(2.0*cfg.Eta_gw**2))
+
+        # apply the heta longitudinal distribution
+        ev[:, 0] *= np.tile(heta, cfg.NX * cfg.NY)
+    else:
+
+        if oneshot:
+            collision.create_ini3D(cent, fini, num_of_events=100,
+                             grid_max=grid_max, grid_step=cfg.DX,
+                             eta_max=eta_max, eta_step=cfg.DZ,
+                             one_shot_ini=oneshot)
+            s = np.loadtxt(os.path.join(fini, 'one_shot_ini.dat'))
+        else:
+            collision.create_ini3D(cent, fini, num_of_events=1,
+                             grid_max=grid_max, grid_step=cfg.DX,
+                             eta_max=eta_max, eta_step=cfg.DZ,
+                             one_shot_ini=oneshot)
+            s = np.loadtxt(os.path.join(fini, '0.dat'))
+        smax = s.max()
+        s_scale = s * scale_factor
+        t0 = time()
+
+        visc = CLVisc(cfg, gpu_id=gpu_id)
+
+        ed = from_sd_to_ed(s_scale, visc.ideal.eos)
+
+        
+
+        # repeat the ed(x,y) NZ times
+        ev[:, 0] = np.repeat((ed.T).flatten(), cfg.NZ)
+
+        eta_max = cfg.NZ//2 * cfg.DZ
+        eta = np.linspace(-eta_max, eta_max, cfg.NZ)
+
+        heta = np.ones(cfg.NZ)
+
+        fall_off = np.abs(eta) > cfg.Eta_flat
+        eta_fall = np.abs(eta[fall_off])
+        heta[fall_off] = np.exp(-(eta_fall - cfg.Eta_flat)**2/(2.0*cfg.Eta_gw**2))
+
+        # apply the heta longitudinal distribution
+        ev[:, 0] *= np.tile(heta, cfg.NX * cfg.NY)
+
+        
+
+
 
     visc.ideal.load_ini(ev)
 
