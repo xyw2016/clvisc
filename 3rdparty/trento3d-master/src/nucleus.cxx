@@ -55,7 +55,7 @@ NucleusPtr Nucleus::create(const std::string& species, double nucleon_dmin) {
     }};
   else if (species == "Xe2")
     return NucleusPtr{new DeformedWoodsSaxonNucleus{
-       129, 5.40, correct_a(0.590, nucleon_width),0.180,0.0
+       129, 5.40, 0.590, 0.180,0.0, nucleon_dmin
     }};
   else if (species == "U")
     return NucleusPtr{new DeformedWoodsSaxonNucleus{

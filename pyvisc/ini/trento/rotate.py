@@ -9,16 +9,21 @@ import pandas as pd
 import scipy.ndimage.interpolation as matrix
 
 
-def rotate(ed, ixmc=50, iymc=50, phi_n=0.0, nx=100, ny=100):
+def rotate(ed, ixmc=50, iymc=50, phi_n=0.0, nx=100, ny=100,nz=67,is3D=False):
     grid_cent_x = (nx - 1.) / 2.
     grid_cent_y = (ny - 1.) / 2.
-    dx_dy = (grid_cent_y-iymc, grid_cent_x-ixmc)
-
-    ed_shift = matrix.shift(ed, dx_dy)
-
-    ed_rot = matrix.rotate(ed_shift,  - phi_n * 180. / np.pi, mode='constant', reshape=False, order=2)
+    grid_cent_z = np.floor(nz/2)
+    if is3D:
+        dx_dy_dz = (grid_cent_y-iymc, grid_cent_x-ixmc,0.0)
+        ed_shift = matrix.shift(ed, dx_dy_dz)
+        ed_rot = matrix.rotate(ed_shift,  - phi_n * 180. / np.pi, mode='constant', reshape=False, order=2)
+    else:
+        dx_dy = (grid_cent_y-iymc, grid_cent_x-ixmc)
+        ed_shift = matrix.shift(ed, dx_dy)
+        ed_rot = matrix.rotate(ed_shift,  - phi_n * 180. / np.pi, mode='constant', reshape=False, order=2)
 
     return ed_rot
+
 
 
 if __name__ == '__main__':

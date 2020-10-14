@@ -38,6 +38,9 @@ void write_stream(std::ostream& os, int width,
      << setw(18) << scientific << event.multiplicity()
      << fixed;
 
+  os << setw(14) << event.mass_center_index().first;
+  os << setw(14) << event.mass_center_index().second;
+  
   for (const auto& ecc : event.eccentricity())
     os << setw(14)             << ecc.second;
 
@@ -62,6 +65,12 @@ void write_text_file(const fs::path& output_dir, int width,
 
     for (const auto& ecc : event.eccentricity())
       ofs << "# e" << ecc.first << "    = " << ecc.second << '\n';
+    for (const auto& phi_n : event.participant_plane())
+      ofs << "# phi_" << phi_n.first << "    = " << phi_n.second << '\n';
+  
+    
+    ofs << "# ixcm=" << event.mass_center_index().first<<'\n';
+    ofs << "# iycm=" << event.mass_center_index().second << '\n';
   }
 
   // Write IC profile as a block grid.  Use C++ default float format (not

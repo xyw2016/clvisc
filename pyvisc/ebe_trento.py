@@ -155,22 +155,7 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
 
         ed = from_sd_to_ed(s_scale, visc.ideal.eos)
 
-        
-
-        # repeat the ed(x,y) NZ times
-        ev[:, 0] = np.repeat((ed.T).flatten(), cfg.NZ)
-
-        eta_max = cfg.NZ//2 * cfg.DZ
-        eta = np.linspace(-eta_max, eta_max, cfg.NZ)
-
-        heta = np.ones(cfg.NZ)
-
-        fall_off = np.abs(eta) > cfg.Eta_flat
-        eta_fall = np.abs(eta[fall_off])
-        heta[fall_off] = np.exp(-(eta_fall - cfg.Eta_flat)**2/(2.0*cfg.Eta_gw**2))
-
-        # apply the heta longitudinal distribution
-        ev[:, 0] *= np.tile(heta, cfg.NX * cfg.NY)
+        ev[:, 0] = ed.transpose((1,0,2)) 
 
         
 
@@ -207,7 +192,8 @@ def main(path, cent='0_5', gpu_id=0, jobs_per_gpu=25, system='pbpb2760'):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) == 5:
-        path_base = '/lustre/nyx/hyihp/lpang/trento_ebe_hydro/results/'
+        #path_base = '/lustre/nyx/hyihp/lpang/trento_ebe_hydro/results/'
+        path_base = '../results/'
         coll_sys = sys.argv[1]
         cent = sys.argv[2]
         gpu_id = int(sys.argv[3])

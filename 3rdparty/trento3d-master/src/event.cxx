@@ -240,6 +240,8 @@ void Event::compute_observables() {
     double wt = 0.;  // weight
     double finish() const  // compute final eccentricity
     { return std::sqrt(re*re + im*im) / std::fmax(wt, TINY); }
+    double phi() const  // nth participant plane angle, n*phi_n
+    { return std::atan2(im, re); }
   } e2, e3, e4, e5;
 
   for (int iy = 0; iy < nsteps_; ++iy) {
@@ -314,6 +316,12 @@ void Event::compute_observables() {
   eccentricity_[3] = e3.finish();
   eccentricity_[4] = e4.finish();
   eccentricity_[5] = e5.finish();
+
+  participant_plane_[2] = e2.phi() / 2.;
+  participant_plane_[3] = e3.phi() / 3.;
+  participant_plane_[4] = e4.phi() / 4.;
+  participant_plane_[5] = e5.phi() / 5.;
+
 }
 
 }  // namespace trento

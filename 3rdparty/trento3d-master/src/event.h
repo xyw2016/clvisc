@@ -65,6 +65,10 @@ class Event {
   const int& npart() const
   { return npart_; }
 
+  /// The index of the center of mass: (ix, iy)
+  const std::pair<double, double> mass_center_index() const
+  { return std::make_pair(ixcm_, iycm_); }
+
   /// \rst
   /// Multiplicity---or more specifically, total entropy.  May be interpreted
   /// as `dS/dy` or `dS/d\eta` at midrapidity.
@@ -81,6 +85,20 @@ class Event {
   /// \endrst
   const std::map<int, double>& eccentricity() const
   { return eccentricity_; }
+
+
+  /// \rst
+  /// participant plane angle `\phi_n` for *n* = 2--5.
+  /// Returns a map of `(n : \phi_n)` pairs, so e.g.::
+  ///
+  ///   double phi_2 = event.participant_plane().at(2);
+  ///
+  /// \endrst
+  const std::map<int, double>& participant_plane() const
+  { return participant_plane_; }
+
+
+
 
   /// The entropy (particle) density grid as a three-dimensional array.
   const Grid3D& density_grid() const {
@@ -164,6 +182,9 @@ class Event {
 
   /// Eccentricity harmonics.
   std::map<int, double> eccentricity_;
+  
+  /// Participant plane angle.
+  std::map<int, double> participant_plane_;
 };
 
 }  // namespace trento
