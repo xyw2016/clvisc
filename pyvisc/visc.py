@@ -515,14 +515,14 @@ def main():
     print('start ...', file=sys.stdout)
     t0 = time()
     from config import cfg, write_config
-    cfg.NX = 385
-    cfg.NY = 385
-    cfg.NZ = 115
+    cfg.NX = 67 
+    cfg.NY = 67
+    cfg.NZ = 67
 
     cfg.DT = 0.01
-    cfg.DX = 0.08
-    cfg.DY = 0.08
-    cfg.DZ = 0.08
+    cfg.DX = 0.3
+    cfg.DY = 0.3
+    cfg.DZ = 0.3
     cfg.ImpactParameter = 7.54
 
     cfg.NumOfNucleons = 208
@@ -537,7 +537,7 @@ def main():
 
 
     cfg.eos_type = 'lattice_pce150'
-    cfg.ntskip = 60
+    cfg.ntskip = 10
     cfg.nxskip = 4
     cfg.nyskip = 4
     cfg.nzskip = 4

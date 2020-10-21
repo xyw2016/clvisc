@@ -90,10 +90,10 @@ class Collision(object):
         centrality_file = os.path.join(__cwd__, self.config['centrality_file_b'])
         self.info_b = pd.read_csv(centrality_file)
         bmin, bmax = self.get_bmin_bmax(cent)
-        cwd1 = os.getcwd()
-        os.chdir("../../../3rdparty/trento3d-master/build/src/")
-        print os.getcwd()
-        print output_path 
+        #cwd1 = os.getcwd()
+        #os.chdir("../../../3rdparty/trento3d-master/build/src/")
+        #print os.getcwd()
+        #print output_path 
         call(['trento3d', self.config['projectile'],
               self.config['target'],
               '%s'%num_of_events,
@@ -113,7 +113,7 @@ class Collision(object):
               '--fluctuation',self.config['fluctuation'],
               '--nucleon-width',self.config['nucleon_width']])
 
-        os.chdir(cwd1)
+        #os.chdir(cwd1)
         if one_shot_ini:
             ngridxy = int(2 * grid_max / grid_step)
             ngrideta = int(2*eta_max/eta_step)+1

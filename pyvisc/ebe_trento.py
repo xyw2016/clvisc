@@ -10,7 +10,7 @@ from glob import glob
 import pyopencl as cl
 import matplotlib.pyplot as plt
 import h5py
-from ini.trento import AuAu200, PbPb2760, PbPb5020
+from ini.trento import AuAu200, PbPb2760, PbPb5020,Xe2Xe25440
 from scipy.interpolate import InterpolatedUnivariateSpline
 
 import os, sys
@@ -41,15 +41,15 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
     if not os.path.exists(fout):
         os.mkdir(fout)
 
-    cfg.NX = 200
-    cfg.NY = 200
-    cfg.NZ = 121
+    cfg.NX = 66
+    cfg.NY = 66
+    cfg.NZ = 67
     cfg.DT = 0.02
-    cfg.DX = 0.16
-    cfg.DY = 0.16
-    cfg.DZ = 0.20
+    cfg.DX = 0.3
+    cfg.DY = 0.3
+    cfg.DZ = 0.3
 
-    cfg.ntskip = 20
+    cfg.ntskip = 10
     cfg.nxskip = 2
     cfg.nyskip = 2
     cfg.nzskip = 2
@@ -58,11 +58,11 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
     cfg.TAU0 = 0.6
     cfg.fPathOut = fout
 
-    cfg.TFRZ = 0.128
+    cfg.TFRZ = 0.137
 
-    cfg.ETAOS_XMIN = 0.154
+    cfg.ETAOS_XMIN = 0.16
 
-    cfg.ETAOS_YMIN = 0.15
+    cfg.ETAOS_YMIN = 0.16
     cfg.ETAOS_RIGHT_SLOP = 0.0
     cfg.ETAOS_LEFT_SLOP =  0.0
 
@@ -75,6 +75,11 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
         comments = 'au+au IP-Glasma'
         collision = AuAu200()
         scale_factor = 57.0
+
+    elif system == 'Xe2Xe25440':
+        comments = 'Xe2+Xe2'
+        collision = Xe2Xe25440()
+        scale_factor = 150
     # for pbpb
     else:
         cfg.Eta_gw = 1.8
@@ -97,8 +102,10 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
         call(['rm', '-r', fini])
 
     ev = np.zeros((cfg.NX*cfg.NY*cfg.NZ, 4), cfg.real)
-    if not boost_invariance：
-
+    if not boost_invariance:
+        print ("################# run Trento 2D ###################")
+        cwd = os.getcwd()
+        os.chdir("../3rdparty/trento_with_participant_plane/build/src/")
         if oneshot:
             collision.create_ini(cent, fini, num_of_events=100,
                              grid_max=grid_max, grid_step=cfg.DX,
@@ -108,7 +115,9 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
             collision.create_ini(cent, fini, num_of_events=1,
                              grid_max=grid_max, grid_step=cfg.DX,
                              one_shot_ini=oneshot)
-        s = np.loadtxt(os.path.join(fini, '0.dat'))
+            s = np.loadtxt(os.path.join(fini, '0.dat'))
+         
+        os.chdir(cwd)
         smax = s.max()
         s_scale = s * scale_factor
         t0 = time()
@@ -135,8 +144,11 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
         ev[:, 0] *= np.tile(heta, cfg.NX * cfg.NY)
     else:
 
+        print ("################# run Trento 3D ###################",system)
+        cwd = os.getcwd()
+        os.chdir("../3rdparty/trento3d-master/build/src/")
         if oneshot:
-            collision.create_ini3D(cent, fini, num_of_events=100,
+            collision.create_ini3D(cent, fini, num_of_events=10,
                              grid_max=grid_max, grid_step=cfg.DX,
                              eta_max=eta_max, eta_step=cfg.DZ,
                              one_shot_ini=oneshot)
@@ -147,6 +159,7 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
                              eta_max=eta_max, eta_step=cfg.DZ,
                              one_shot_ini=oneshot)
             s = np.loadtxt(os.path.join(fini, '0.dat'))
+        os.chdir(cwd)
         smax = s.max()
         s_scale = s * scale_factor
         t0 = time()
@@ -154,8 +167,8 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
         visc = CLVisc(cfg, gpu_id=gpu_id)
 
         ed = from_sd_to_ed(s_scale, visc.ideal.eos)
-
-        ev[:, 0] = ed.transpose((1,0,2)) 
+        ed = ed.reshape((cfg.NY,cfg.NX,cfg.NZ))
+        ev[:, 0] = ed.transpose((1,0,2)).flatten() 
 
         
 
@@ -176,9 +189,9 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
       '--mode', 'mc'])
 
      # calc the smooth particle spectra
-    call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
-      '--viscous_on', "true", "--reso_decay", "false", 
-      '--mode', 'smooth'])
+    #call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
+    #  '--viscous_on', "true", "--reso_decay", "false", 
+    #  '--mode', 'smooth'])
  
 def main(path, cent='0_5', gpu_id=0, jobs_per_gpu=25, system='pbpb2760'):
     fpath_out = os.path.abspath(path)
@@ -193,7 +206,7 @@ if __name__ == '__main__':
     import sys
     if len(sys.argv) == 5:
         #path_base = '/lustre/nyx/hyihp/lpang/trento_ebe_hydro/results/'
-        path_base = '../results/'
+        path_base = './results/'
         coll_sys = sys.argv[1]
         cent = sys.argv[2]
         gpu_id = int(sys.argv[3])

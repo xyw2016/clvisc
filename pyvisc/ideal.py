@@ -381,7 +381,7 @@ def main():
 
     write_config(cfg)
 
-    ideal = CLIdeal(cfg, gpu_id=1)
+    ideal = CLIdeal(cfg, gpu_id=0)
 
     from glauber import Glauber
     ini = Glauber(cfg, ideal.ctx, ideal.queue, ideal.compile_options,
