@@ -33,7 +33,7 @@ def from_sd_to_ed(entropy, eos):
     return f_ed(entropy)
 
 
-def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_invariance=True,oneshot=False):
+def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_invariance=False,oneshot=True):
     ''' Run event_by_event hydro, with initial condition 
     from smearing on the particle list'''
 
@@ -43,16 +43,16 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
 
     cfg.NX = 66
     cfg.NY = 66
-    cfg.NZ = 67
+    cfg.NZ = 67 
     cfg.DT = 0.02
     cfg.DX = 0.3
     cfg.DY = 0.3
     cfg.DZ = 0.3
 
     cfg.ntskip = 10
-    cfg.nxskip = 2
-    cfg.nyskip = 2
-    cfg.nzskip = 2
+    cfg.nxskip = 4 
+    cfg.nyskip = 4
+    cfg.nzskip = 2 
 
     cfg.eos_type = 'lattice_pce150'
     cfg.TAU0 = 0.6
@@ -91,10 +91,10 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
         elif system == 'pbpb5020':
             cfg.Eta_flat = 2.2
             collision = PbPb5020()
-            scale_factor = 151.0
+            scale_factor = 250.0
 
-    grid_max = cfg.NX/2 * cfg.DX
-    eta_max = cfg.NZ/2 * cfg.DZ
+    grid_max = np.floor(cfg.NX/2) * cfg.DX
+    eta_max = np.floor(cfg.NZ/2) * cfg.DZ
 
     fini = os.path.join(fout, 'trento_ini/')
 
@@ -102,11 +102,12 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
         call(['rm', '-r', fini])
 
     ev = np.zeros((cfg.NX*cfg.NY*cfg.NZ, 4), cfg.real)
-    if not boost_invariance:
+    if boost_invariance:
         print ("################# run Trento 2D ###################")
         cwd = os.getcwd()
         os.chdir("../3rdparty/trento_with_participant_plane/build/src/")
         if oneshot:
+            print ("################# oneshot ###################")
             collision.create_ini(cent, fini, num_of_events=100,
                              grid_max=grid_max, grid_step=cfg.DX,
                              one_shot_ini=oneshot)
@@ -148,6 +149,7 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
         cwd = os.getcwd()
         os.chdir("../3rdparty/trento3d-master/build/src/")
         if oneshot:
+            print ("################# oneshot ###################")
             collision.create_ini3D(cent, fini, num_of_events=10,
                              grid_max=grid_max, grid_step=cfg.DX,
                              eta_max=eta_max, eta_step=cfg.DZ,

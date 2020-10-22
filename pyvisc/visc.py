@@ -78,7 +78,6 @@ class CLVisc(object):
         # store the pi^{mu nu} on freeze out hyper surface
         self.d_pi_sf = cl.Buffer(self.ctx, mf.READ_WRITE, self.h_pi0.nbytes)
         self.kernel_hypersf = self.ideal.kernel_hypersf
-
         # initialize pimn, umu[2] such that its value can be changed before
         # self.evolve() is called for bjorken_test and gubser_test
         self.IS_initialize()
@@ -374,7 +373,6 @@ class CLVisc(object):
         pr = self.ideal.eos.f_P(ed)
         T = self.cfg.TFRZ
         const_for_deltaf = 1.0/(2.0*T**2*(ed + pr))
-
         pi_onsf = np.zeros(10*num_of_sf, dtype=self.cfg.real)
         if not set_to_zero:
             cl.enqueue_copy(self.queue, pi_onsf, self.d_pi_sf).wait()

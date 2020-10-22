@@ -594,7 +594,6 @@ __kernel void visc_hypersf(__global real8  * d_sf,
             // Check this to remove this piece of freeze out hyper-surface 
             if ( ! isnan(mass_center.s0) ) {
                 int id_ = atomic_inc(num_of_sf);
-                                       
                 d_sf[id_] = result;
 
                 d_sf_txyz[id_] = (real4)(tau * cosh(eta), x, y, tau * sinh(eta));
@@ -608,7 +607,6 @@ __kernel void visc_hypersf(__global real8  * d_sf,
                 d_pi[10*id_ + 7] = centroid_intp(d_pi_old, d_pi_new, mass_center, 7, i, j, k, 10);
                 d_pi[10*id_ + 8] = centroid_intp(d_pi_old, d_pi_new, mass_center, 8, i, j, k, 10);
                 d_pi[10*id_ + 9] = centroid_intp(d_pi_old, d_pi_new, mass_center, 9, i, j, k, 10);
-
 #ifdef CALC_VORTICITY_ON_SF
                 // the theraml vorticity on the freeze out hypersf
                 d_omega_sf[6*id_ + 0] = centroid_intp(d_omega_old, d_omega_new, mass_center, 0, i, j, k, 6);
