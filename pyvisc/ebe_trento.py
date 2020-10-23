@@ -33,7 +33,7 @@ def from_sd_to_ed(entropy, eos):
     return f_ed(entropy)
 
 
-def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_invariance=False,oneshot=True):
+def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_invariance=False,oneshot=False):
     ''' Run event_by_event hydro, with initial condition 
     from smearing on the particle list'''
 
@@ -54,7 +54,7 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
     cfg.nyskip = 4
     cfg.nzskip = 2 
 
-    cfg.eos_type = 'lattice_pce150'
+    cfg.eos_type = 'lattice_pce165'
     cfg.TAU0 = 0.6
     cfg.fPathOut = fout
 
@@ -79,7 +79,7 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
     elif system == 'Xe2Xe25440':
         comments = 'Xe2+Xe2'
         collision = Xe2Xe25440()
-        scale_factor = 150
+        scale_factor = 130
     # for pbpb
     else:
         cfg.Eta_gw = 1.8
@@ -91,7 +91,7 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
         elif system == 'pbpb5020':
             cfg.Eta_flat = 2.2
             collision = PbPb5020()
-            scale_factor = 250.0
+            scale_factor = 130.0
 
     grid_max = np.floor(cfg.NX/2) * cfg.DX
     eta_max = np.floor(cfg.NZ/2) * cfg.DZ
@@ -150,7 +150,7 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
         os.chdir("../3rdparty/trento3d-master/build/src/")
         if oneshot:
             print ("################# oneshot ###################")
-            collision.create_ini3D(cent, fini, num_of_events=10,
+            collision.create_ini3D(cent, fini, num_of_events=100,
                              grid_max=grid_max, grid_step=cfg.DX,
                              eta_max=eta_max, eta_step=cfg.DZ,
                              one_shot_ini=oneshot)
