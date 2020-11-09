@@ -33,7 +33,7 @@ def from_sd_to_ed(entropy, eos):
     return f_ed(entropy)
 
 
-def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_invariance=False,oneshot=False):
+def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_invariance=False,oneshot=True):
     ''' Run event_by_event hydro, with initial condition 
     from smearing on the particle list'''
 
@@ -52,9 +52,10 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
     cfg.ntskip = 10
     cfg.nxskip = 4 
     cfg.nyskip = 4
-    cfg.nzskip = 2 
+    cfg.nzskip = 4 
 
-    cfg.eos_type = 'lattice_pce165'
+    #cfg.eos_type = 'hotqcd2014'
+    cfg.eos_type = 'lattice_pce150'
     cfg.TAU0 = 0.6
     cfg.fPathOut = fout
 

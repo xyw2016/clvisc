@@ -34,6 +34,8 @@ class Eos(object):
             self.pure_su3()
         elif eos_type == 'first_order':
             self.eosq()
+        elif eos_type == 'hotqcd2014':
+            self.hotqcd2014()
 
 
 
@@ -119,6 +121,20 @@ class Eos(object):
         self.pr = np.insert(0.5*(pce[1:, 1] + pce[:-1, 1]), 0, 0.0)
         self.s = np.insert(0.5*(pce[1:, 2] + pce[:-1, 2]), 0, 0.0)
         self.T = np.insert(0.5*(pce[1:, 3] + pce[:-1, 3]), 0, 0.0)
+        self.ed_start = 0.0
+        self.ed_step = 0.002
+        self.num_of_ed = 155500
+        self.eos_func_from_interp1d()
+
+
+    def hotqcd2014(self):
+        import os
+        cwd, cwf = os.path.split(__file__)
+        hotepst = np.loadtxt(os.path.join(cwd, 'eos_table/hotqcd/HotQCD.dat'))
+        self.ed =np.insert(hotepst[:,0],0, 0.0)
+        self.pr = np.insert(hotepst[:,1],0, 0.0)
+        self.s = np.insert(hotepst[:,2],0, 0.0)
+        self.T = np.insert(hotepst[:,3],0, 0.0)
         self.ed_start = 0.0
         self.ed_step = 0.002
         self.num_of_ed = 155500
@@ -232,13 +248,24 @@ class Eos(object):
    
 if __name__ == '__main__':
     def test_plot_cs2():
-        eos = Eos('lattice_pce150')
+        eos1 = Eos('lattice_pce150')
+        eos2 = Eos('hotqcd2014')
+        ed =np.arange(0.0,1.0,0.001)
+        pr1 = np.zeros_like(ed)
+        pr2 = np.zeros_like(ed)
+        for i in range(len(ed)):
+            pr1[i] = eos1.f_T(ed[i])
+            pr2[i] = eos2.f_T(ed[i])
         #print eos.f_ed(0.63)
-        #print eos.f_ed(0.137)
+        print eos1.f_T(0.32), eos2.f_T(0.32)
+        print eos1.f_P(0.32), eos2.f_P(0.32)
+
         import matplotlib.pyplot as plt
         #print(eos.f_ed(0.137))
-        plt.plot(eos.ed, np.gradient(eos.pr, eos.ed_step))
-        plt.plot(eos.ed, eos.cs2, 'r-')
+        #plt.plot(eos.ed, np.gradient(eos.pr, eos.ed_step))
+        plt.plot(ed, pr1, 'r-',label="pce150")
+        plt.plot(ed, pr2, 'b-',label="hotQCD2014")
+        plt.legend()
         plt.show()
  
     test_plot_cs2()

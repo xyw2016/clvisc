@@ -73,6 +73,9 @@ class CLIdeal(object):
         elif self.cfg.eos_type == 'lattice_pce150':
             self.eos_table = self.eos.create_table(self.ctx,
                     self.compile_options, nrow=100, ncol=1555)
+        elif self.cfg.eos_type == 'hotqcd2014':
+            self.eos_table = self.eos.create_table(self.ctx,
+                    self.compile_options, nrow=100, ncol=1555)
         elif self.cfg.eos_type == 'lattice_wb':
             self.eos_table = self.eos.create_table(self.ctx,
                     self.compile_options, nrow=4, ncol=1001)
