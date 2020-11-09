@@ -150,7 +150,15 @@ class PbPb2760(Collision):
         config = {'projectile':'Pb',
                   'target':'Pb',
                   'cross_section':6.4,
-                  'centrality_file':'pbpb2760_cent.csv'}
+                  'centrality_file':'pbpb2760_cent.csv',
+                  'centrality_file_b':'pbpb2760_cent_b.csv',
+                  'mean_coeff':'0.0',
+                  'std_coeff':'2.9',
+                  'skew_coeff':'7.3',
+                  'skew_type':'1',
+                  'jacobian':'0.75',
+                  'fluctuation':'2.0',
+                  'nucleon_width':'0.59'}
         super(PbPb2760, self).__init__(config)
 
        

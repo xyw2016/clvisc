@@ -38,10 +38,32 @@
 
 include(FindPackageHandleStandardArgs)
 
-find_path(GSL_INCLUDES gsl/gsl_sf_bessel.h)
+if (EXISTS "$ENV{GSL_ROOT_DIR}")
+  file( TO_CMAKE_PATH "$ENV{GSL_ROOT_DIR}" GSL_ROOT_DIR )
+  set( GSL_ROOT_DIR "${GSL_ROOT_DIR}" CACHE PATH "Prefix for GSL installation")
 
-find_library(GSL_LIBRARY gsl)
-find_library(GSL_CBLAS_LIBRARY gslcblas)
+ elseif (EXISTS "${GSL_ROOT_DIR}" )
+  file( TO_CMAKE_PATH ${GSL_ROOT_DIR} GSL_ROOT_DIR )
+  set( GSL_ROOT_DIR "${GSL_ROOT_DIR}" CACHE PATH "Prefix for GSL installation")
+endif()
+
+if ( NOT EXISTS "${GSL_ROOT_DIR}" )
+  set( GSL_USE_PKGCONFIG ON )
+endif()
+
+
+if (GSL_USE_PKGCONFIG)
+  find_package(PkgConfig)
+  pkg_check_modules( GSL gsl )
+  if (EXISTS "${GSL_INCLUDE_DIR}")
+    get_filename_component( GSL_ROOT_DIR "${GSL_INCLUDE_DIR}" PATH CACHE )
+  endif()
+endif()
+
+
+find_path(GSL_INCLUDES gsl/gsl_sf_bessel.h)
+find_library(GSL_LIBRARY NAMES gsl HINTS ${GSL_ROOT_DIR}/lib ${GSL_LIBDIR})
+find_library(GSL_CBLAS_LIBRARY NAMES gslcblas HINTS ${GSL_ROOT_DIR}/lib ${GSL_LIBDIR})
 
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(GSL
    REQUIRED_VARS GSL_LIBRARY GSL_INCLUDES GSL_CBLAS_LIBRARY

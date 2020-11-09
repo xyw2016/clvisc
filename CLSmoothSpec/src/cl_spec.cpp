@@ -398,7 +398,7 @@ void Spec::initializeCL()
             compile_options << "-D TCOEFF=" << one_over_2TsqrEplusP << " ";
             std::cout << "TFRZ=" << Tfrz << " TCOEFF=" << one_over_2TsqrEplusP << std::endl;
         }
-        queue = cl::CommandQueue( context, devices[1], CL_QUEUE_PROFILING_ENABLE );
+        queue = cl::CommandQueue( context, devices[gpu_id_], CL_QUEUE_PROFILING_ENABLE );
 
 #ifdef  LOEWE_CSC
         AddProgram( "../src/kernel_spec_csc.cl" );
