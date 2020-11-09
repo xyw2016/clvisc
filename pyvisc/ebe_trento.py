@@ -8,7 +8,7 @@ import os
 from time import time
 from glob import glob
 import pyopencl as cl
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import h5py
 from ini.trento import AuAu200, PbPb2760, PbPb5020,Xe2Xe25440
 from scipy.interpolate import InterpolatedUnivariateSpline
@@ -178,7 +178,7 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
 
     visc.ideal.load_ini(ev)
 
-    visc.evolve(max_loops=4000, save_hypersf=True, save_bulk=True, save_vorticity=False)
+    visc.evolve(max_loops=4000, save_hypersf=True, save_bulk=False, save_vorticity=False)
 
     write_config(cfg, comments)
     t1 = time()
@@ -192,12 +192,12 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
 
      # calc the smooth particle spectra
     #call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
-    #  '--viscous_on', "true", "--reso_decay", "false", 
+    #  '--viscous_on', "true", "--reso_decay", "true", 
     #  '--mode', 'smooth'])
  
-def main(path, cent='0_5', gpu_id=0, jobs_per_gpu=25, system='pbpb2760'):
+def main(path, cent='0_5', gpu_id=0, event0=0, event1=1, system='pbpb2760'):
     fpath_out = os.path.abspath(path)
-    for i in xrange(gpu_id*jobs_per_gpu, (gpu_id+1)*jobs_per_gpu):
+    for i in range(event0, event1):
         fout = os.path.join(fpath_out, 'event%s'%i)
         if not os.path.exists(fout):
             os.makedirs(fout)
@@ -206,12 +206,13 @@ def main(path, cent='0_5', gpu_id=0, jobs_per_gpu=25, system='pbpb2760'):
 
 if __name__ == '__main__':
     import sys
-    if len(sys.argv) == 5:
+    if len(sys.argv) == 6:
         #path_base = '/lustre/nyx/hyihp/lpang/trento_ebe_hydro/results/'
         path_base = './results/'
         coll_sys = sys.argv[1]
         cent = sys.argv[2]
         gpu_id = int(sys.argv[3])
         path = os.path.join(path_base, coll_sys, cent)
-        jobs_per_gpu = int(sys.argv[4])
-        main(path, cent, gpu_id=gpu_id, jobs_per_gpu=jobs_per_gpu, system=coll_sys)
+        event0 = int(sys.argv[4])
+        event1 = int(sys.argv[5])
+        main(path, cent, gpu_id=gpu_id, event0=event0,event1=event1, system=coll_sys)

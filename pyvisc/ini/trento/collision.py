@@ -92,8 +92,6 @@ class Collision(object):
         bmin, bmax = self.get_bmin_bmax(cent)
         #cwd1 = os.getcwd()
         #os.chdir("../../../3rdparty/trento3d-master/build/src/")
-        #print os.getcwd()
-        #print output_path 
         call(['trento3d', self.config['projectile'],
               self.config['target'],
               '%s'%num_of_events,
