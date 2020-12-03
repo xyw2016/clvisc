@@ -97,7 +97,7 @@ class BulkInfo(object):
         self.eccp_vs_tau.append(self.eccp(exy, vx, vy)[1])
         self.vr.append(self.mean_vr(exy, vx, vy))
 
-        self.get_total_energy_and_entropy_on_gpu(tau, d_ev)
+        #self.get_total_energy_and_entropy_on_gpu(tau, d_ev)
 
         ed_cent = exy[i0, j0]
 
