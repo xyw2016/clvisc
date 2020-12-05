@@ -51,7 +51,7 @@ NucleusPtr Nucleus::create(const std::string& species, double nucleon_width) {
     return NucleusPtr{new Deuteron{}};
   else if (species == "Cu")
     return NucleusPtr{new WoodsSaxonNucleus{
-       62, 4.20, correct_a(0.596, nucleon_width)
+       62, 4.20, correct_a(0.596, nucleon_width),0.0
     }};
   else if (species == "Cu2")
     return NucleusPtr{new DeformedWoodsSaxonNucleus{
@@ -59,7 +59,7 @@ NucleusPtr Nucleus::create(const std::string& species, double nucleon_width) {
     }};
   else if (species == "Xe")
     return NucleusPtr{new WoodsSaxonNucleus{
-       129, 5.56, correct_a(0.535, nucleon_width)
+       129, 5.56, correct_a(0.535, nucleon_width),0.0
     }};
   else if (species == "Xe2")
     return NucleusPtr{new DeformedWoodsSaxonNucleus{
@@ -67,7 +67,7 @@ NucleusPtr Nucleus::create(const std::string& species, double nucleon_width) {
     }};
   else if (species == "Au")
     return NucleusPtr{new WoodsSaxonNucleus{
-      197, 6.38, correct_a(0.535, nucleon_width)
+      197, 6.38, correct_a(0.535, nucleon_width),0.0
     }};
   else if (species == "Au2")
     return NucleusPtr{new DeformedWoodsSaxonNucleus{
@@ -75,7 +75,7 @@ NucleusPtr Nucleus::create(const std::string& species, double nucleon_width) {
     }};
   else if (species == "Pb")
     return NucleusPtr{new WoodsSaxonNucleus{
-      208, 6.62, correct_a(0.546, nucleon_width)
+      208, 6.62, correct_a(0.546, nucleon_width),0.0
     }};
   else if (species == "U")
     return NucleusPtr{new DeformedWoodsSaxonNucleus{
@@ -88,6 +88,38 @@ NucleusPtr Nucleus::create(const std::string& species, double nucleon_width) {
   else if (species == "U3")
     return NucleusPtr{new DeformedWoodsSaxonNucleus{
       238, 6.67, correct_a(0.440, nucleon_width), 0.280, 0.093
+    }};
+  else if (species == "Ru")
+    return NucleusPtr{new WoodsSaxonNucleus{
+      96, 5.085, correct_a(0.460, nucleon_width),0.0
+    }};
+  else if (species == "Ru2")
+    return NucleusPtr{new DeformedWoodsSaxonNucleus{
+      96, 5.085, correct_a(0.460, nucleon_width), 0.158, 0.0
+    }};
+  else if (species == "Ru3")
+    return NucleusPtr{new DeformedWoodsSaxonNucleus{
+      96, 5.085, correct_a(0.460, nucleon_width), 0.053, 0.0
+    }};
+  else if (species == "Zr")
+    return NucleusPtr{new WoodsSaxonNucleus{
+      96, 5.02, correct_a(0.460, nucleon_width),0.0
+    }};
+  else if (species == "Zr2")
+    return NucleusPtr{new DeformedWoodsSaxonNucleus{
+      96, 5.02, correct_a(0.460, nucleon_width), 0.08, 0.0
+    }};
+  else if (species == "Zr3")
+    return NucleusPtr{new DeformedWoodsSaxonNucleus{
+      96, 5.02, correct_a(0.460, nucleon_width), 0.217, 0.0
+    }};
+  else if (species == "O")
+    return NucleusPtr{new WoodsSaxonNucleus{
+      16, 2.608, correct_a(0.513, nucleon_width),-0.051
+    }};
+  else if (species == "Ar")
+    return NucleusPtr{new WoodsSaxonNucleus{
+      40, 3.53, correct_a(0.542, nucleon_width),0.0
     }};
   // Read nuclear configurations from HDF5.
   else if (hdf5::filename_is_hdf5(species)) {
@@ -176,12 +208,13 @@ void Deuteron::sample_nucleons_impl() {
 
 // Extend the W-S dist out to R + 10a; for typical values of (R, a), the
 // probability of sampling a nucleon beyond this radius is O(10^-5).
-WoodsSaxonNucleus::WoodsSaxonNucleus(std::size_t A, double R, double a)
+WoodsSaxonNucleus::WoodsSaxonNucleus(std::size_t A, double R, double a, double w)
     : Nucleus(A),
       R_(R),
       a_(a),
+      w_(w),
       woods_saxon_dist_(1000, 0., R + 10.*a,
-        [R, a](double r) { return r*r/(1.+std::exp((r-R)/a)); })
+        [R, a, w](double r) { return (1+w*r*r/(R*R))*r*r/(1.+std::exp((r-R)/a)); })
 {}
 
 /// Return something a bit smaller than the true maximum radius.  The

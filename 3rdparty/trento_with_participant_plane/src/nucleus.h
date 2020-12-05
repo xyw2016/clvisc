@@ -186,7 +186,7 @@ class WoodsSaxonNucleus : public Nucleus {
   /// \param A number of nucleons
   /// \param R Woods-Saxon radius
   /// \param a Woods-Saxon surface thickness
-  WoodsSaxonNucleus(std::size_t A, double R, double a);
+  WoodsSaxonNucleus(std::size_t A, double R, double a, double w);
 
   /// The radius of a Woods-Saxon Nucleus is computed from the parameters (R, a).
   virtual double radius() const override;
@@ -196,7 +196,7 @@ class WoodsSaxonNucleus : public Nucleus {
   virtual void sample_nucleons_impl() override;
 
   /// Woods-Saxon parameters.
-  const double R_, a_;
+  const double R_, a_, w_;
 
   /// Woods-Saxon distribution object.  Since the dist does not have an analytic
   /// inverse CDF, approximate it as a piecewise linear dist.  For a large

@@ -1,1 +1,1 @@
-from .collision import AuAu200, PbPb2760, PbPb5020, XeXe5440,Xe2Xe25440
+from .collision import AuAu200, PbPb2760, PbPb5020, XeXe5440,Xe2Xe25440, RuRu200,Ru2Ru2200,Ru3Ru3200,ZrZr200,Zr2Zr2200,Zr3Zr3200,OO6500,ArAr5850

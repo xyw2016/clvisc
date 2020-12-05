@@ -212,7 +212,7 @@ class WoodsSaxonNucleus : public MinDistNucleus {
   /// \param R Woods-Saxon radius
   /// \param a Woods-Saxon surface thickness
   /// \param dmin minimum nucleon-nucleon distance (optional, default zero)
-  WoodsSaxonNucleus(std::size_t A, double R, double a, double dmin = 0);
+  WoodsSaxonNucleus(std::size_t A, double R, double a, double w ,double dmin = 0);
 
   /// The radius of a Woods-Saxon Nucleus is computed from the parameters (R, a).
   virtual double radius() const override;
@@ -222,7 +222,7 @@ class WoodsSaxonNucleus : public MinDistNucleus {
   virtual void sample_nucleons_impl() override;
 
   /// Woods-Saxon parameters.
-  const double R_, a_;
+  const double R_, a_, w_;
 
   /// Woods-Saxon distribution object.  Since the dist does not have an analytic
   /// inverse CDF, approximate it as a piecewise linear dist.  For a large

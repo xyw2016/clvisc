@@ -34,10 +34,16 @@ class BulkInfo(object):
 
         NX, NY, NZ = cfg.NX, cfg.NY, cfg.NZ
 
-        self.x = np.linspace(-floor(NX/2)*cfg.DX, floor(NX/2)*cfg.DX, NX, endpoint=True)
-        self.y = np.linspace(-floor(NY/2)*cfg.DY, floor(NY/2)*cfg.DY, NY, endpoint=True)
-        self.z = np.linspace(-floor(NZ/2)*cfg.DZ, floor(NZ/2)*cfg.DZ, NZ, endpoint=True)
-
+        if NX%2 == 1:
+            self.x = np.linspace(-floor(NX/2)*cfg.DX, floor(NX/2)*cfg.DX, NX, endpoint=True)
+            self.y = np.linspace(-floor(NY/2)*cfg.DY, floor(NY/2)*cfg.DY, NY, endpoint=True)
+            self.z = np.linspace(-floor(NZ/2)*cfg.DZ, floor(NZ/2)*cfg.DZ, NZ, endpoint=True)
+            #including grid point 0 
+        elif NX%2 == 0:
+            self.x = np.linspace(-((NX-1)/2.0)*cfg.DX, ((NX-1)/2.0)*cfg.DX, NX, endpoint=True)
+            self.y = np.linspace(-((NY-1)/2.0)*cfg.DY, ((NY-1)/2.0)*cfg.DY, NY, endpoint=True)
+            self.z = np.linspace(-floor(NZ/2)*cfg.DZ, floor(NZ/2)*cfg.DZ, NZ, endpoint=True)
+            #NOT including grid point 0  for trento2D
         self.h_ev = np.zeros((NX*NY*NZ, 4), cfg.real)
 
         self.a_ed = cl_array.empty(self.queue, NX*NY*NZ, cfg.real)
@@ -48,8 +54,8 @@ class BulkInfo(object):
         self.a_eccp2 = cl_array.empty(self.queue, NZ, cfg.real)
         
         # store the data in hdf5 file
-        h5_path = os.path.join(cfg.fPathOut, 'bulkinfo.h5')
-        self.f_hdf5 = h5py.File(h5_path, 'w')
+        #h5_path = os.path.join(cfg.fPathOut, 'bulkinfo.h5')
+        #self.f_hdf5 = h5py.File(h5_path, 'w')
 
         self.eos = Eos(cfg.eos_type)
 
@@ -67,6 +73,31 @@ class BulkInfo(object):
         self.eccp_vs_tau = []
         self.eccx = []
         self.vr= []
+
+
+        # time evolution for bulk3D
+        self.Tau_tijk =[]
+        self.X_tijk = []
+        self.Y_tijk = []
+        self.Z_tijk = []
+        self.ED_tijk = []
+        self.Tp_tijk = []
+#       self.Frc_tijk = []
+        self.Vx_tijk = []
+        self.Vy_tijk = []
+        self.Vz_tijk = []
+
+        # time evolution for bulk2D
+        self.Tau_2d =[]
+        self.X_2d=[]
+        self.Y_2d=[]
+        self.ED_2d=[]
+        self.Tp_2d=[]
+        self.Vx_2d = []
+        self.Vy_2d = []
+        self.Vz_2d = []
+        self.Frc_2d = []
+
 
 
     def __load_and_build_cl_prg(self):
@@ -93,6 +124,62 @@ class BulkInfo(object):
         exy = bulk[:, :, k0, 0]
         vx = bulk[:, :, k0, 1]
         vy = bulk[:, :, k0, 2]
+        vz2d = bulk[:,:,k0,3].flatten()
+        exy2d = bulk[:, :, k0, 0].flatten()
+        vx2d = bulk[:, :, k0, 1].flatten()
+        vy2d = bulk[:, :, k0, 2].flatten()
+        Tp2d = self.eos.f_T(exy2d)
+
+
+        ed_ijk = bulk[:,:,:,0].flatten()
+        vx_ijk = bulk[:,:,:,1].flatten()
+        vy_ijk = bulk[:,:,:,2].flatten()
+        vz_ijk = bulk[:,:,:,3].flatten()
+        Tp_ijk = self.eos.f_T(ed_ijk)
+
+
+        xline = self.x
+        xline2d = np.repeat(xline,NY)
+        self.X_2d.extend( xline2d )
+        x_ijk = np.repeat(xline,NY*NZ)
+        self.X_tijk.extend(x_ijk)
+
+
+
+        yline = self.y
+        y_ij = np.tile(yline,NX)
+        yline2d=np.tile(yline,NX)
+        self.Y_2d.extend(yline2d)
+        y_ijk = np.repeat(y_ij,NZ)
+        self.Y_tijk.extend(y_ijk)
+
+        zline = self.z
+        z_ijk = np.tile(zline,NX*NY)
+        self.Z_tijk.extend(z_ijk)
+
+        tau_ijk = np.repeat(tau,NX*NY*NZ)
+        tau2d= np.repeat(tau,NX*NY)
+        frac2d= np.repeat(0,NX*NY)
+
+
+
+        self.Tau_tijk.extend(tau_ijk)
+        self.ED_tijk.extend(ed_ijk)
+        self.Tp_tijk.extend(Tp_ijk)
+        self.Vx_tijk.extend(vx_ijk)
+        self.Vy_tijk.extend(vy_ijk)
+        self.Vz_tijk.extend(vz_ijk)
+
+
+        self.Tau_2d.extend(tau2d)
+        self.ED_2d.extend(exy2d)
+        self.Tp_2d.extend(Tp2d)
+        self.Vx_2d.extend(vx2d)
+        self.Vy_2d.extend(vy2d)
+        self.Vz_2d.extend(vz2d)
+        self.Frc_2d.extend(frac2d)
+
+
 
         self.eccp_vs_tau.append(self.eccp(exy, vx, vy)[1])
         self.vr.append(self.mean_vr(exy, vx, vy))
@@ -105,39 +192,39 @@ class BulkInfo(object):
         self.Tcent.append(self.eos.f_T(ed_cent))
 
         #ecc1, ecc2 = self.ecc_vs_rapidity(bulk)
-        ecc1, ecc2 = self.ecc_vs_rapidity_on_gpu(tau, d_ev)
-        self.f_hdf5.create_dataset('bulk1d/eccp1_tau%s'%time_stamp, data = ecc1)
-        self.f_hdf5.create_dataset('bulk1d/eccp2_tau%s'%time_stamp, data = ecc2)
+        #ecc1, ecc2 = self.ecc_vs_rapidity_on_gpu(tau, d_ev)
+        #self.f_hdf5.create_dataset('bulk1d/eccp1_tau%s'%time_stamp, data = ecc1)
+        #self.f_hdf5.create_dataset('bulk1d/eccp2_tau%s'%time_stamp, data = ecc2)
 
-        # ed_x(y=0, z=0), ed_y(x=0, z=0), ed_z(x=0, y=0)
-        self.f_hdf5.create_dataset('bulk1d/ex_tau%s'%time_stamp, data = bulk[:, j0, k0, 0])
-        self.f_hdf5.create_dataset('bulk1d/ey_tau%s'%time_stamp, data = bulk[i0, :, k0, 0])
-        self.f_hdf5.create_dataset('bulk1d/ez_tau%s'%time_stamp, data = bulk[i0, j0, :, 0])
+        ## ed_x(y=0, z=0), ed_y(x=0, z=0), ed_z(x=0, y=0)
+        #self.f_hdf5.create_dataset('bulk1d/ex_tau%s'%time_stamp, data = bulk[:, j0, k0, 0])
+        #self.f_hdf5.create_dataset('bulk1d/ey_tau%s'%time_stamp, data = bulk[i0, :, k0, 0])
+        #self.f_hdf5.create_dataset('bulk1d/ez_tau%s'%time_stamp, data = bulk[i0, j0, :, 0])
 
-        # vx_x(y=0, z=0), vy_y(x=0, z=0), vz_z(x=0, y=0)
-        self.f_hdf5.create_dataset('bulk1d/vx_tau%s'%time_stamp, data = bulk[:, j0, k0, 1])
-        self.f_hdf5.create_dataset('bulk1d/vy_tau%s'%time_stamp, data = bulk[i0, :, k0, 2])
-        self.f_hdf5.create_dataset('bulk1d/vz_tau%s'%time_stamp, data = bulk[i0, j0, :, 3])
+        ## vx_x(y=0, z=0), vy_y(x=0, z=0), vz_z(x=0, y=0)
+        #self.f_hdf5.create_dataset('bulk1d/vx_tau%s'%time_stamp, data = bulk[:, j0, k0, 1])
+        #self.f_hdf5.create_dataset('bulk1d/vy_tau%s'%time_stamp, data = bulk[i0, :, k0, 2])
+        #self.f_hdf5.create_dataset('bulk1d/vz_tau%s'%time_stamp, data = bulk[i0, j0, :, 3])
 
-        # ed_xy(z=0), ed_xz(y=0), ed_yz(x=0)
-        self.f_hdf5.create_dataset('bulk2d/exy_tau%s'%time_stamp, data = bulk[:, :, k0, 0])
-        self.f_hdf5.create_dataset('bulk2d/exz_tau%s'%time_stamp, data = bulk[:, j0, :, 0])
-        self.f_hdf5.create_dataset('bulk2d/eyz_tau%s'%time_stamp, data = bulk[i0, :, :, 0])
+        ## ed_xy(z=0), ed_xz(y=0), ed_yz(x=0)
+        #self.f_hdf5.create_dataset('bulk2d/exy_tau%s'%time_stamp, data = bulk[:, :, k0, 0])
+        #self.f_hdf5.create_dataset('bulk2d/exz_tau%s'%time_stamp, data = bulk[:, j0, :, 0])
+        #self.f_hdf5.create_dataset('bulk2d/eyz_tau%s'%time_stamp, data = bulk[i0, :, :, 0])
 
-        # vx_xy(z=0), vx_xz(y=0), vx_yz(x=0)
-        self.f_hdf5.create_dataset('bulk2d/vx_xy_tau%s'%time_stamp, data = bulk[:, :, k0, 1])
-        self.f_hdf5.create_dataset('bulk2d/vx_xz_tau%s'%time_stamp, data = bulk[:, j0, :, 1])
-        #self.f_hdf5.create_dataset('bulk2d/vx_yz_tau%s'%time_stamp, data = bulk[i0, :, :, 1])
+        ## vx_xy(z=0), vx_xz(y=0), vx_yz(x=0)
+        #self.f_hdf5.create_dataset('bulk2d/vx_xy_tau%s'%time_stamp, data = bulk[:, :, k0, 1])
+        #self.f_hdf5.create_dataset('bulk2d/vx_xz_tau%s'%time_stamp, data = bulk[:, j0, :, 1])
+        ##self.f_hdf5.create_dataset('bulk2d/vx_yz_tau%s'%time_stamp, data = bulk[i0, :, :, 1])
 
-        # vy_xy(z=0), vy_xz(y=0), vy_yz(x=0)
-        self.f_hdf5.create_dataset('bulk2d/vy_xy_tau%s'%time_stamp, data = bulk[:, :, k0, 2])
-        #self.f_hdf5.create_dataset('bulk2d/vy_xz_tau%s'%time_stamp, data = bulk[:, j0, :, 2])
-        self.f_hdf5.create_dataset('bulk2d/vy_yz_tau%s'%time_stamp, data = bulk[i0, :, :, 2])
+        ## vy_xy(z=0), vy_xz(y=0), vy_yz(x=0)
+        #self.f_hdf5.create_dataset('bulk2d/vy_xy_tau%s'%time_stamp, data = bulk[:, :, k0, 2])
+        ##self.f_hdf5.create_dataset('bulk2d/vy_xz_tau%s'%time_stamp, data = bulk[:, j0, :, 2])
+        #self.f_hdf5.create_dataset('bulk2d/vy_yz_tau%s'%time_stamp, data = bulk[i0, :, :, 2])
 
-        # vz_xy(z=0), vz_xz(y=0), vz_yz(x=0)
-        self.f_hdf5.create_dataset('bulk2d/vz_xy_tau%s'%time_stamp, data = bulk[:, :, k0, 3])
-        self.f_hdf5.create_dataset('bulk2d/vz_xz_tau%s'%time_stamp, data = bulk[:, j0, :, 3])
-        #self.f_hdf5.create_dataset('bulk2d/vz_yz_tau%s'%time_stamp, data = bulk[i0, :, :, 3])
+        ## vz_xy(z=0), vz_xz(y=0), vz_yz(x=0)
+        #self.f_hdf5.create_dataset('bulk2d/vz_xy_tau%s'%time_stamp, data = bulk[:, :, k0, 3])
+        #self.f_hdf5.create_dataset('bulk2d/vz_xz_tau%s'%time_stamp, data = bulk[:, j0, :, 3])
+        ##self.f_hdf5.create_dataset('bulk2d/vz_yz_tau%s'%time_stamp, data = bulk[i0, :, :, 3])
 
     def eccp(self, ed, vx, vy, vz=0.0):
         ''' eccx = <y*y-x*x>/<y*y+x*x> where <> are averaged 
@@ -219,20 +306,29 @@ class BulkInfo(object):
                             self.entropy, self.energy, self.vr))),
                    header='tau, eccp, ed(0,0,0), stotal, Etotal, <vr>')
 
-        self.f_hdf5.create_dataset('coord/tau', data = self.time)
-        self.f_hdf5.create_dataset('coord/x', data = self.x)
-        self.f_hdf5.create_dataset('coord/y', data = self.y)
-        self.f_hdf5.create_dataset('coord/etas', data = self.z)
+        #self.f_hdf5.create_dataset('coord/tau', data = self.time)
+        #self.f_hdf5.create_dataset('coord/x', data = self.x)
+        #self.f_hdf5.create_dataset('coord/y', data = self.y)
+        #self.f_hdf5.create_dataset('coord/etas', data = self.z)
 
-        self.f_hdf5.create_dataset('avg/eccp', data = np.array(self.eccp_vs_tau))
-        self.f_hdf5.create_dataset('avg/edcent', data = np.array(self.edcent))
-        self.f_hdf5.create_dataset('avg/Tcent', data = self.eos.f_T(np.array(self.edcent)))
-        self.f_hdf5.create_dataset('avg/entropy', data = np.array(self.entropy))
-        self.f_hdf5.create_dataset('avg/energy', data = np.array(self.energy))
-        self.f_hdf5.create_dataset('avg/vr', data = np.array(self.vr))
+        #self.f_hdf5.create_dataset('avg/eccp', data = np.array(self.eccp_vs_tau))
+        #self.f_hdf5.create_dataset('avg/edcent', data = np.array(self.edcent))
+        #self.f_hdf5.create_dataset('avg/Tcent', data = self.eos.f_T(np.array(self.edcent)))
+        #self.f_hdf5.create_dataset('avg/entropy', data = np.array(self.entropy))
+        #self.f_hdf5.create_dataset('avg/energy', data = np.array(self.energy))
+        #self.f_hdf5.create_dataset('avg/vr', data = np.array(self.vr))
 
-        self.f_hdf5.close()
+        #self.f_hdf5.close()
 
 
 
+        #np.savetxt(path_out + '/bulk3D.dat', \
+        #np.array(zip(self.Tau_tijk, self.X_tijk, self.Y_tijk, self.Z_tijk, \
+        #self.ED_tijk, self.Tp_tijk, self.Vx_tijk, self.Vy_tijk, self.Vz_tijk)), \
+        #fmt='%.2f %.2f %.2f %.2f %.8e %.8e %.8e %.8e %.8e',header = 'tau x y z Ed T vx vy veta')
+
+        np.savetxt(path_out + '/bulk2D.dat', \
+        np.array(zip(self.Tau_2d, self.X_2d, self.Y_2d, \
+        self.ED_2d, self.Tp_2d, self.Vx_2d, self.Vy_2d, self.Vz_2d , self.Frc_2d)), \
+        fmt='%.2f %.2f %.2f %.8e %.8e %.8e %.8e %.8e %.1f',header = 'tau x y Ed T vx vy veta frc')
 

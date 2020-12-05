@@ -10,9 +10,9 @@ from glob import glob
 import pyopencl as cl
 #import matplotlib.pyplot as plt
 import h5py
-from ini.trento import AuAu200, PbPb2760, PbPb5020,Xe2Xe25440
+from ini.trento import AuAu200, PbPb2760, PbPb5020,Xe2Xe25440,RuRu200,Ru2Ru2200,Ru3Ru3200,ZrZr200,Zr2Zr2200,Zr3Zr3200
 from scipy.interpolate import InterpolatedUnivariateSpline
-
+import gc
 import os, sys
 cwd, cwf = os.path.split(__file__)
 print('cwd=', cwd)
@@ -33,7 +33,7 @@ def from_sd_to_ed(entropy, eos):
     return f_ed(entropy)
 
 
-def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_invariance=False,oneshot=True):
+def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_invariance=True,oneshot=True):
     ''' Run event_by_event hydro, with initial condition 
     from smearing on the particle list'''
 
@@ -41,7 +41,7 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
     if not os.path.exists(fout):
         os.mkdir(fout)
 
-    cfg.NX = 66
+    cfg.NX = 66 
     cfg.NY = 66
     cfg.NZ = 67 
     cfg.DT = 0.02
@@ -49,17 +49,17 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
     cfg.DY = 0.3
     cfg.DZ = 0.3
 
-    cfg.ntskip = 10
+    cfg.ntskip = 10 
     cfg.nxskip = 4 
     cfg.nyskip = 4
-    cfg.nzskip = 4 
+    cfg.nzskip = 2 
 
-    #cfg.eos_type = 'hotqcd2014'
-    cfg.eos_type = 'lattice_pce150'
+    cfg.eos_type = 'hotqcd2014'
+    #cfg.eos_type = 'lattice_pce150'
     cfg.TAU0 = 0.6
     cfg.fPathOut = fout
 
-    cfg.TFRZ = 0.137
+    cfg.TFRZ = 0.154
 
     cfg.ETAOS_XMIN = 0.16
 
@@ -77,10 +77,64 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
         collision = AuAu200()
         scale_factor = 57.0
 
+    elif system == 'RuRu200':
+        cfg.Eta_gw = 1.3
+        cfg.Eta_flat = 1.5
+        comments = 'Ru+Ru IP-Glasma'
+        collision = RuRu200()
+        scale_factor = 57.0
+    
+    elif system == 'Ru2Ru2200':
+        cfg.Eta_gw = 1.3
+        cfg.Eta_flat = 1.5
+        comments = 'Ru2+Ru2 IP-Glasma'
+        collision = Ru2Ru2200()
+        scale_factor = 57.0
+    
+    elif system == 'Ru3Ru3200':
+        cfg.Eta_gw = 1.3
+        cfg.Eta_flat = 1.5
+        comments = 'Ru3+Ru3 IP-Glasma'
+        collision = Ru3Ru3200()
+        scale_factor = 57.0
+
+    elif system == 'ZrZr200':
+        cfg.Eta_gw = 1.3
+        cfg.Eta_flat = 1.5
+        comments = 'Zr+Zr IP-Glasma'
+        collision = RuRu200()
+        scale_factor = 57.0
+    
+    elif system == 'Zr2Zr2200':
+        cfg.Eta_gw = 1.3
+        cfg.Eta_flat = 1.5
+        comments = 'Zr2+Zr2 IP-Glasma'
+        collision = Ru2Ru2200()
+        scale_factor = 57.0
+    
+    elif system == 'Zr3Zr3200':
+        cfg.Eta_gw = 1.3
+        cfg.Eta_flat = 1.5
+        comments = 'Zr3+Zr3 IP-Glasma'
+        collision = Ru3Ru3200()
+        scale_factor = 57.0
+
     elif system == 'Xe2Xe25440':
         comments = 'Xe2+Xe2'
         collision = Xe2Xe25440()
         scale_factor = 130
+    elif system == 'OO6500':
+        comments = 'O+O'
+        cfg.Eta_gw = 2.0
+        cfg.Eta_flat = 1.7
+        collision = OO6500()
+        scale_factor = 180.0
+    elif system == 'ArAr5850':
+        comments = 'Ar+Ar'
+        cfg.Eta_gw = 2.0
+        cfg.Eta_flat = 1.7
+        collision = ArAr5850()
+        scale_factor = 160.0
     # for pbpb
     else:
         cfg.Eta_gw = 1.8
@@ -88,7 +142,7 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
         comments = 'pb+pb IP-Glasma'
         if system == 'pbpb2760':
             collision = PbPb2760()
-            scale_factor = 128.0
+            scale_factor = 118.0
         elif system == 'pbpb5020':
             cfg.Eta_flat = 2.2
             collision = PbPb5020()
@@ -179,17 +233,16 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
 
     visc.ideal.load_ini(ev)
 
-    visc.evolve(max_loops=4000, save_hypersf=True, save_bulk=False, save_vorticity=False)
+    visc.evolve(max_loops=4000, save_hypersf=True, save_bulk=True, save_vorticity=False)
 
     write_config(cfg, comments)
     t1 = time()
     print('finished. Total time: {dtime}'.format(dtime = t1-t0))
 
-
     # get particle spectra from MC sampling and force decay
-    call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
-      '--viscous_on', "true", "--reso_decay", "true", "--nsampling", "2000",
-      '--mode', 'mc'])
+    #call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
+    #  '--viscous_on', "true", "--reso_decay", "true", "--nsampling", "2000",
+    #  '--mode', 'mc'])
 
      # calc the smooth particle spectra
     #call(['python', 'spec.py', '--event_dir', cfg.fPathOut,

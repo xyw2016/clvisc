@@ -76,7 +76,7 @@ class Collision(object):
                     dat = np.loadtxt(fname).reshape(ngrid, ngrid)
                     opt = reader.get_comments(fname)
                     sd_new = rotate(dat, opt['ixcm'], opt['iycm'], opt['phi_2'], ngrid, ngrid)
-                    sxy += sd_new 
+                    sxy += np.fabs(sd_new)
                     num_of_events += 1
                 except:
                     print(fname, 'is not a trento event')
@@ -125,7 +125,7 @@ class Collision(object):
                 dat = np.loadtxt(fname).reshape(ngridxy, ngridxy,ngrideta)
                 opt = reader.get_comments(fname)
                 sd_new = rotate(dat, opt['ixcm'], opt['iycm'], opt['phi_2'], ngridxy, ngridxy,ngrideta,is3D=True)
-                sxyz += sd_new 
+                sxyz += np.fabs(sd_new)
                 num_of_events += 1
                 #except:
                 #    print(fname, 'is not a trento event')
@@ -138,10 +138,114 @@ class AuAu200(Collision):
         config = {'projectile':'Au',
                   'target':'Au',
                   'cross_section':4.23,
-                  'centrality_file':'auau200_cent.csv'}
+                  'centrality_file':'auau200_cent.csv',
+                  'centrality_file_b':'auau200_cent_b.csv',
+                  'mean_coeff':'0.0',
+                  'std_coeff':'2.9',
+                  'skew_coeff':'7.3',
+                  'skew_type':'1',
+                  'jacobian':'0.75',
+                  'fluctuation':'2.0',
+                  'nucleon_width':'0.59'}
         super(AuAu200, self).__init__(config)
 
+class RuRu200(Collision):
+    def __init__(self):
+        config = {'projectile':'Ru',
+                  'target':'Ru',
+                  'cross_section':4.23,
+                  'centrality_file':'ruru200_cent.csv',
+                  'centrality_file_b':'ruru200_cent_b.csv',
+                  'mean_coeff':'0.0',
+                  'std_coeff':'2.9',
+                  'skew_coeff':'7.3',
+                  'skew_type':'1',
+                  'jacobian':'0.75',
+                  'fluctuation':'2.0',
+                  'nucleon_width':'0.59'}
+        super(RuRu200, self).__init__(config)
+
+class Ru2Ru2200(Collision):
+    def __init__(self):
+        config = {'projectile':'Ru2',
+                  'target':'Ru2',
+                  'cross_section':4.23,
+                  'centrality_file':'ru2ru2200_cent.csv',
+                  'centrality_file_b':'ru2ru2200_cent_b.csv',
+                  'mean_coeff':'0.0',
+                  'std_coeff':'2.9',
+                  'skew_coeff':'7.3',
+                  'skew_type':'1',
+                  'jacobian':'0.75',
+                  'fluctuation':'2.0',
+                  'nucleon_width':'0.59'}
+        super(Ru2Ru2200, self).__init__(config)
        
+class Ru3Ru3200(Collision):
+    def __init__(self):
+        config = {'projectile':'Ru3',
+                  'target':'Ru3',
+                  'cross_section':4.23,
+                  'centrality_file':'ru3ru3200_cent.csv',
+                  'centrality_file_b':'ru3ru3200_cent_b.csv',
+                  'mean_coeff':'0.0',
+                  'std_coeff':'2.9',
+                  'skew_coeff':'7.3',
+                  'skew_type':'1',
+                  'jacobian':'0.75',
+                  'fluctuation':'2.0',
+                  'nucleon_width':'0.59'}
+        super(Ru3Ru3200, self).__init__(config)
+
+
+class ZrZr200(Collision):
+    def __init__(self):
+        config = {'projectile':'Zr',
+                  'target':'Zr',
+                  'cross_section':4.23,
+                  'centrality_file':'ZrZr200_cent.csv',
+                  'centrality_file_b':'ZrZr200_cent_b.csv',
+                  'mean_coeff':'0.0',
+                  'std_coeff':'2.9',
+                  'skew_coeff':'7.3',
+                  'skew_type':'1',
+                  'jacobian':'0.75',
+                  'fluctuation':'2.0',
+                  'nucleon_width':'0.59'}
+        super(ZrZr200, self).__init__(config)
+
+class Zr2Zr2200(Collision):
+    def __init__(self):
+        config = {'projectile':'Zr2',
+                  'target':'Zr2',
+                  'cross_section':4.23,
+                  'centrality_file':'zr2zr2200_cent.csv',
+                  'centrality_file_b':'zr2zr2200_cent_b.csv',
+                  'mean_coeff':'0.0',
+                  'std_coeff':'2.9',
+                  'skew_coeff':'7.3',
+                  'skew_type':'1',
+                  'jacobian':'0.75',
+                  'fluctuation':'2.0',
+                  'nucleon_width':'0.59'}
+        super(Zr2Zr2200, self).__init__(config)
+       
+class Zr3Zr3200(Collision):
+    def __init__(self):
+        config = {'projectile':'Zr3',
+                  'target':'Zr3',
+                  'cross_section':4.23,
+                  'centrality_file':'Zr3Zr3200_cent.csv',
+                  'centrality_file_b':'Zr3Zr3200_cent_b.csv',
+                  'mean_coeff':'0.0',
+                  'std_coeff':'2.9',
+                  'skew_coeff':'7.3',
+                  'skew_type':'1',
+                  'jacobian':'0.75',
+                  'fluctuation':'2.0',
+                  'nucleon_width':'0.59'}
+        super(Zr3Zr3200, self).__init__(config)
+
 
 class PbPb2760(Collision):
     def __init__(self):
@@ -208,6 +312,38 @@ class XeXe5440(Collision):
                   'fluctuation':'2.0',
                   'nucleon_width':'0.59'}
         super(XeXe5440, self).__init__(config)
+class OO6500(Collision):
+    def __init__(self):
+        config = {'projectile':'O',
+                  'target':'O',
+                  'cross_section':7.25,
+                  'centrality_file':'OO6500_cent.csv',
+                  'centrality_file_b':'OO6500_cent_b.csv',
+                  'mean_coeff':'0.0',
+                  'std_coeff':'2.9',
+                  'skew_coeff':'7.3',
+                  'skew_type':'1',
+                  'jacobian':'0.75',
+                  'fluctuation':'2.0',
+                  'nucleon_width':'0.59'}
+        super(OO6500, self).__init__(config)
+
+class ArAr5850(Collision):
+    def __init__(self):
+        config = {'projectile':'Ar',
+                  'target':'Ar',
+                  'cross_section':7.0,
+                  'centrality_file':'ArAr5850_cent.csv',
+                  'centrality_file_b':'ArAr5850_cent_b.csv',
+                  'mean_coeff':'0.0',
+                  'std_coeff':'2.9',
+                  'skew_coeff':'7.3',
+                  'skew_type':'1',
+                  'jacobian':'0.75',
+                  'fluctuation':'2.0',
+                  'nucleon_width':'0.59'}
+        super(ArAr5850, self).__init__(config)
+
 
 if __name__=='__main__':
     xexe = Xe2Xe25440()
