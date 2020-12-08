@@ -10,7 +10,7 @@ from glob import glob
 import pyopencl as cl
 #import matplotlib.pyplot as plt
 import h5py
-from ini.trento import AuAu200, PbPb2760, PbPb5020,Xe2Xe25440,RuRu200,Ru2Ru2200,Ru3Ru3200,ZrZr200,Zr2Zr2200,Zr3Zr3200
+from ini.trento import AuAu200, PbPb2760, PbPb5020,Xe2Xe25440,RuRu200,Ru2Ru2200,Ru3Ru3200,ZrZr200,Zr2Zr2200,Zr3Zr3200,OO6500,ArAr5850
 from scipy.interpolate import InterpolatedUnivariateSpline
 import gc
 import os, sys
@@ -54,12 +54,12 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
     cfg.nyskip = 4
     cfg.nzskip = 2 
 
-    cfg.eos_type = 'hotqcd2014'
-    #cfg.eos_type = 'lattice_pce150'
+    #cfg.eos_type = 'hotqcd2014'
+    cfg.eos_type = 'lattice_pce165'
     cfg.TAU0 = 0.6
     cfg.fPathOut = fout
 
-    cfg.TFRZ = 0.154
+    cfg.TFRZ = 0.137
 
     cfg.ETAOS_XMIN = 0.16
 
@@ -121,20 +121,22 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
 
     elif system == 'Xe2Xe25440':
         comments = 'Xe2+Xe2'
+        cfg.Eta_gw = 1.8
+        cfg.Eta_flat = 2.23
         collision = Xe2Xe25440()
-        scale_factor = 130
+        scale_factor = 155.0 #one_shot
     elif system == 'OO6500':
         comments = 'O+O'
         cfg.Eta_gw = 2.0
         cfg.Eta_flat = 1.7
         collision = OO6500()
-        scale_factor = 180.0
+        scale_factor = 180.0  #180.0 one_shot
     elif system == 'ArAr5850':
         comments = 'Ar+Ar'
         cfg.Eta_gw = 2.0
         cfg.Eta_flat = 1.7
         collision = ArAr5850()
-        scale_factor = 160.0
+        scale_factor = 160.0  #160 one_shot
     # for pbpb
     else:
         cfg.Eta_gw = 1.8
@@ -142,11 +144,12 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
         comments = 'pb+pb IP-Glasma'
         if system == 'pbpb2760':
             collision = PbPb2760()
-            scale_factor = 118.0
+            scale_factor = 130 #118.0 #130.0 one_shot
         elif system == 'pbpb5020':
-            cfg.Eta_flat = 2.2
+            cfg.Eta_gw = 2.0 
+            cfg.Eta_flat = 1.7
             collision = PbPb5020()
-            scale_factor = 130.0
+            scale_factor = 155.0 #one_shot
 
     grid_max = np.floor(cfg.NX/2) * cfg.DX
     eta_max = np.floor(cfg.NZ/2) * cfg.DZ
@@ -240,9 +243,9 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
     print('finished. Total time: {dtime}'.format(dtime = t1-t0))
 
     # get particle spectra from MC sampling and force decay
-    #call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
-    #  '--viscous_on', "true", "--reso_decay", "true", "--nsampling", "2000",
-    #  '--mode', 'mc'])
+    call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
+      '--viscous_on', "true", "--reso_decay", "true", "--nsampling", "2000",
+      '--mode', 'mc'])
 
      # calc the smooth particle spectra
     #call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
