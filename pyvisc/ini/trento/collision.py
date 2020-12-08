@@ -54,7 +54,7 @@ class Collision(object):
                    grid_max=15.0, grid_step=0.1, num_of_events=1,
                    one_shot_ini=False, align_for_oneshot=False):
         smin, smax = self.get_smin_smax(cent)
-        call(['trento', self.config['projectile'],
+        call(['./trento', self.config['projectile'],
               self.config['target'],
               '%s'%num_of_events,
               '-o', output_path,
@@ -92,7 +92,7 @@ class Collision(object):
         bmin, bmax = self.get_bmin_bmax(cent)
         #cwd1 = os.getcwd()
         #os.chdir("../../../3rdparty/trento3d-master/build/src/")
-        call(['trento3d', self.config['projectile'],
+        call(['./trento3d', self.config['projectile'],
               self.config['target'],
               '%s'%num_of_events,
               '-o', output_path,
