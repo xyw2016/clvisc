@@ -61,7 +61,11 @@ if (GSL_USE_PKGCONFIG)
 endif()
 
 
-find_path(GSL_INCLUDES gsl/gsl_sf_bessel.h)
+#find_path(GSL_INCLUDES gsl/gsl_sf_bessel.h)
+find_path( GSL_INCLUDES
+  NAMES gsl
+  HINTS ${GSL_ROOT_DIR}/include ${GSL_INCLUDES}
+  )
 find_library(GSL_LIBRARY NAMES gsl HINTS ${GSL_ROOT_DIR}/lib ${GSL_LIBDIR})
 find_library(GSL_CBLAS_LIBRARY NAMES gslcblas HINTS ${GSL_ROOT_DIR}/lib ${GSL_LIBDIR})
 
