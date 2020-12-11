@@ -7,10 +7,11 @@ from subprocess import call
 import pandas as pd
 import os
 import numpy as np
+__cwd__, __cwf__ = os.path.split(__file__)
+sys.path.append(os.path.join(__cwd__, '../trento'))
 import reader
 from rotate import rotate
 
-__cwd__, __cwf__ = os.path.split(__file__)
 
 class Collision(object):
     def __init__(self, config):

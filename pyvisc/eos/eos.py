@@ -257,8 +257,6 @@ if __name__ == '__main__':
             pr1[i] = eos1.f_T(ed[i])
             pr2[i] = eos2.f_T(ed[i])
         #print eos.f_ed(0.63)
-        print eos1.f_T(0.32), eos2.f_T(0.32)
-        print eos1.f_P(0.32), eos2.f_P(0.32)
 
         import matplotlib.pyplot as plt
         #print(eos.f_ed(0.137))
