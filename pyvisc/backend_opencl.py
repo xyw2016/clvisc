@@ -48,7 +48,6 @@ class OpenCLBackend(object):
                 platform_num = int(os.environ['OPENCL_PLATFORM'])
             else:
                 platform_num = 0
-            print platform_num
             platform = cl.get_platforms()[platform_num]
             devices = platform.get_devices(device_type=cl.device_type.GPU)
             devices = [devices[gpu_id]]
