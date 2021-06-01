@@ -89,22 +89,24 @@ class Collision(object):
                    eta_max=9.9,eta_step=0.3,
                    one_shot_ini=False, align_for_oneshot=False):
         output_path = os.path.abspath(output_path)
-        centrality_file = os.path.join(__cwd__, self.config['centrality_file_b'])
-        self.info_b = pd.read_csv(centrality_file)
-        bmin, bmax = self.get_bmin_bmax(cent)
+        #centrality_file = os.path.join(__cwd__, self.config['centrality_file'])
+        #self.info_b = pd.read_csv(centrality_file)
+        smin, smax = self.get_smin_smax(cent)
+        #bmin, bmax = self.get_bmin_bmax(cent)
         #cwd1 = os.getcwd()
         #os.chdir("../../../3rdparty/trento3d-master/build/src/")
+        
         call(['./trento3d', self.config['projectile'],
               self.config['target'],
               '%s'%num_of_events,
               '-o', output_path,
               '-x', '%s'%self.config['cross_section'],
-              '--b-min', '%s'%bmin,
-              '--b-max', '%s'%bmax,
               '--xy-max', '%s'%grid_max,
               '--xy-step', '%s'%grid_step,
               '--eta-max','%s'%eta_max,
               '--eta-step','%s'%eta_step,
+              '--s-min', '%s'%smin,
+              '--s-max', '%s'%smax,
               '--mean-coeff',self.config['mean_coeff'],
               '--std-coeff',self.config['std_coeff'],
               '--skew-coeff',self.config['skew_coeff'],
@@ -124,7 +126,10 @@ class Collision(object):
             for event in events:
                 #try:
                 fname = os.path.join(output_path, event)
-                dat = np.loadtxt(fname).reshape(ngridxy, ngridxy,ngrideta)
+                #dat = np.loadtxt(fname).reshape(ngridxy, ngridxy,ngrideta)
+                dat = pd.read_csv(fname,header=None,comment="#",sep=" ")
+                dat = dat.values[:,:-1]
+                dat = dat.reshape(ngridxy, ngridxy,ngrideta)
                 opt = reader.get_comments(fname)
                 sd_new = rotate(dat, opt['ixcm'], opt['iycm'], opt['phi_2'], ngridxy, ngridxy,ngrideta,is3D=True)
                 sxyz += np.fabs(sd_new)
@@ -141,7 +146,6 @@ class AuAu200(Collision):
                   'target':'Au',
                   'cross_section':4.23,
                   'centrality_file':'auau200_cent.csv',
-                  'centrality_file_b':'auau200_cent_b.csv',
                   'mean_coeff':'0.0',
                   'std_coeff':'2.9',
                   'skew_coeff':'7.3',
@@ -157,7 +161,6 @@ class RuRu200(Collision):
                   'target':'Ru',
                   'cross_section':4.23,
                   'centrality_file':'ruru200_cent.csv',
-                  'centrality_file_b':'ruru200_cent_b.csv',
                   'mean_coeff':'0.0',
                   'std_coeff':'2.9',
                   'skew_coeff':'7.3',
@@ -173,7 +176,6 @@ class Ru2Ru2200(Collision):
                   'target':'Ru2',
                   'cross_section':4.23,
                   'centrality_file':'ru2ru2200_cent.csv',
-                  'centrality_file_b':'ru2ru2200_cent_b.csv',
                   'mean_coeff':'0.0',
                   'std_coeff':'2.9',
                   'skew_coeff':'7.3',
@@ -189,7 +191,6 @@ class Ru3Ru3200(Collision):
                   'target':'Ru3',
                   'cross_section':4.23,
                   'centrality_file':'ru3ru3200_cent.csv',
-                  'centrality_file_b':'ru3ru3200_cent_b.csv',
                   'mean_coeff':'0.0',
                   'std_coeff':'2.9',
                   'skew_coeff':'7.3',
@@ -206,7 +207,6 @@ class ZrZr200(Collision):
                   'target':'Zr',
                   'cross_section':4.23,
                   'centrality_file':'ZrZr200_cent.csv',
-                  'centrality_file_b':'ZrZr200_cent_b.csv',
                   'mean_coeff':'0.0',
                   'std_coeff':'2.9',
                   'skew_coeff':'7.3',
@@ -222,7 +222,6 @@ class Zr2Zr2200(Collision):
                   'target':'Zr2',
                   'cross_section':4.23,
                   'centrality_file':'zr2zr2200_cent.csv',
-                  'centrality_file_b':'zr2zr2200_cent_b.csv',
                   'mean_coeff':'0.0',
                   'std_coeff':'2.9',
                   'skew_coeff':'7.3',
@@ -238,7 +237,6 @@ class Zr3Zr3200(Collision):
                   'target':'Zr3',
                   'cross_section':4.23,
                   'centrality_file':'Zr3Zr3200_cent.csv',
-                  'centrality_file_b':'Zr3Zr3200_cent_b.csv',
                   'mean_coeff':'0.0',
                   'std_coeff':'2.9',
                   'skew_coeff':'7.3',
@@ -255,7 +253,6 @@ class PbPb2760(Collision):
                   'target':'Pb',
                   'cross_section':6.4,
                   'centrality_file':'pbpb2760_cent.csv',
-                  'centrality_file_b':'pbpb2760_cent_b.csv',
                   'mean_coeff':'0.0',
                   'std_coeff':'2.9',
                   'skew_coeff':'7.3',
@@ -282,13 +279,27 @@ class PbPb5020(Collision):
                   'nucleon_width':'0.59'}
         super(PbPb5020, self).__init__(config)
 
+class pPb5020(Collision):
+    def __init__(self):
+        config = {'projectile':'p',
+                  'target':'Pb',
+                  'cross_section':7.0,
+                  'centrality_file':'pPb5020_cent.csv',
+                  'mean_coeff':'0.0',
+                  'std_coeff':'2.9',
+                  'skew_coeff':'7.3',
+                  'skew_type':'1',
+                  'jacobian':'0.75',
+                  'fluctuation':'2.0',
+                  'nucleon_width':'0.59'}
+        super(pPb5020, self).__init__(config)
+
 class Xe2Xe25440(Collision):
     def __init__(self):
         config = {'projectile':'Xe2',
                   'target':'Xe2',
                   'cross_section':7.0,
                   'centrality_file':'xexe5440_cent.csv',
-                  'centrality_file_b':'xe2xe25440_cent_b.csv',
                   'mean_coeff':'0.0',
                   'std_coeff':'2.9',
                   'skew_coeff':'7.3',
@@ -304,7 +315,6 @@ class XeXe5440(Collision):
                   'target':'Xe',
                   'cross_section':7.0,
                   'centrality_file':'xexe5440_cent.csv',
-                  'centrality_file_b':'xexe5440_cent_b.csv',
                   'mean_coeff':'0.0',
                   'std_coeff':'2.9',
                   'skew_coeff':'7.3',
@@ -319,7 +329,6 @@ class OO6500(Collision):
                   'target':'O',
                   'cross_section':7.25,
                   'centrality_file':'OO6500_cent.csv',
-                  'centrality_file_b':'OO6500_cent_b.csv',
                   'mean_coeff':'0.0',
                   'std_coeff':'2.9',
                   'skew_coeff':'7.3',
@@ -335,7 +344,6 @@ class ArAr5850(Collision):
                   'target':'Ar',
                   'cross_section':7.0,
                   'centrality_file':'ArAr5850_cent.csv',
-                  'centrality_file_b':'ArAr5850_cent_b.csv',
                   'mean_coeff':'0.0',
                   'std_coeff':'2.9',
                   'skew_coeff':'7.3',

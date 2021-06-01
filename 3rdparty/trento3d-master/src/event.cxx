@@ -117,8 +117,11 @@ void Event::compute(const Nucleus& nucleusA, const Nucleus& nucleusB,
                     NucleonProfile& profile) {
   // Reset npart; compute_nuclear_thickness() increments it.
   npart_ = 0;
-  compute_nuclear_thickness(nucleusA, profile, TA_);
-  compute_nuclear_thickness(nucleusB, profile, TB_);
+  if (trial_){
+    compute_nuclear_thickness(nucleusA, profile, TA_);
+    compute_nuclear_thickness(nucleusB, profile, TB_);
+  }
+  
   compute_reduced_thickness_();
   compute_observables();
 }
@@ -126,6 +129,7 @@ void Event::compute(const Nucleus& nucleusA, const Nucleus& nucleusB,
 bool Event::is3D() const {
   return etamax_ > TINY;
 }
+
 
 namespace {
 
@@ -155,7 +159,9 @@ void Event::compute_nuclear_thickness(
   std::fill(TX.origin(), TX.origin() + TX.num_elements(), 0.);
 
   const double r = profile.radius();
-
+  
+  
+  
   // Deposit each participant onto the grid.
   for (const auto& nucleon : nucleus) {
     if (!nucleon.is_participant())
@@ -185,6 +191,8 @@ void Event::compute_nuclear_thickness(
       }
     }
   }
+  
+
 }
 
 template <typename GenMean>
@@ -192,7 +200,7 @@ void Event::compute_reduced_thickness(GenMean gen_mean) {
   double sum = 0.;
   double ixcm = 0.;
   double iycm = 0.;
-
+  
   for (int iy = 0; iy < nsteps_; ++iy) {
     for (int ix = 0; ix < nsteps_; ++ix) {
       auto ta = TA_[iy][ix];
@@ -202,7 +210,9 @@ void Event::compute_reduced_thickness(GenMean gen_mean) {
       TR_[iy][ix][0] = t;
       /// If operating in the 3D mode, the 3D density_ array is filled with
       /// its value at eta=0 identical to TR_ array
-      if (is3D()) {
+      
+      if (is3D()&& !trial_) {
+        
         auto mean = mean_coeff_ * mean_function(ta, tb, exp_ybeam_);
         auto std = std_coeff_ * std_function(ta, tb);
         auto skew = skew_coeff_ * skew_function(ta, tb, skew_type_);

@@ -114,6 +114,10 @@ class Event {
 
   const double& deta() const
   { return deta_; }
+  
+  bool trial2D(bool trial=false){
+  trial_ = trial;
+  return trial_;} 
 
  private:
   /// Compute a nuclear thickness function (TA or TB) onto a grid for a given
@@ -176,6 +180,8 @@ class Event {
 
   /// Number of participants.
   int npart_;
+   
+  bool trial_;
 
   /// Multiplicity (total entropy).
   double multiplicity_;

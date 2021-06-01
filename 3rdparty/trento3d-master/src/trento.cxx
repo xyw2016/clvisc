@@ -121,7 +121,13 @@ int main(int argc, char* argv[]) {
     ("output,o", po::value<fs::path>()->value_name("PATH"),
      "HDF5 file or directory for text files")
     ("no-header", po::bool_switch(),
-     "do not write headers to text files");
+     "do not write headers to text files")
+     ("s-min",
+     po::value<double>()->value_name("FLOAT")->default_value(0., "0"),
+     "minimum inital total entropy for one centrality range")
+    ("s-max",
+     po::value<double>()->value_name("FLOAT")->default_value(1000000., "1000000"),
+     "maximum initial total entropy for one centrality range");
 
   OptDesc phys_opts{"physical options"};
   phys_opts.add_options()

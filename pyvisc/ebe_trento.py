@@ -10,7 +10,7 @@ from glob import glob
 import pyopencl as cl
 #import matplotlib.pyplot as plt
 import h5py
-from ini.trento import AuAu200, PbPb2760, PbPb5020,Xe2Xe25440,RuRu200,Ru2Ru2200,Ru3Ru3200,ZrZr200,Zr2Zr2200,Zr3Zr3200,OO6500,ArAr5850
+from ini.trento import AuAu200, PbPb2760, PbPb5020,Xe2Xe25440,RuRu200,Ru2Ru2200,Ru3Ru3200,ZrZr200,Zr2Zr2200,Zr3Zr3200,OO6500,ArAr5850,pPb5020
 from scipy.interpolate import InterpolatedUnivariateSpline
 import gc
 import os, sys
@@ -33,7 +33,7 @@ def from_sd_to_ed(entropy, eos):
     return f_ed(entropy)
 
 
-def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_invariance=True,oneshot=True):
+def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_invariance=False,oneshot=True):
     ''' Run event_by_event hydro, with initial condition 
     from smearing on the particle list'''
 
@@ -43,11 +43,11 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
 
     cfg.NX = 66 
     cfg.NY = 66
-    cfg.NZ = 67 
+    cfg.NZ = 201 
     cfg.DT = 0.02
     cfg.DX = 0.3
     cfg.DY = 0.3
-    cfg.DZ = 0.3
+    cfg.DZ = 0.12
 
     cfg.ntskip = 10 
     cfg.nxskip = 4 
@@ -137,6 +137,10 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
         cfg.Eta_flat = 1.7
         collision = ArAr5850()
         scale_factor = 160.0  #160 one_shot
+    elif system == 'pPb5020':
+        comments = 'p+Pb'
+        collision = pPb5020()
+        scale_factor = 60  
     # for pbpb
     else:
         cfg.Eta_gw = 1.8
@@ -236,7 +240,7 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
 
     visc.ideal.load_ini(ev)
 
-    visc.evolve(max_loops=4000, save_hypersf=True, save_bulk=True, save_vorticity=False)
+    visc.evolve(max_loops=4000, save_hypersf=True, save_bulk=False, save_vorticity=False)
 
     write_config(cfg, comments)
     t1 = time()

@@ -63,6 +63,8 @@ Collider::Collider(const VarMap& var_map)
       nevents_(var_map["number-events"].as<int>()),
       bmin_(var_map["b-min"].as<double>()),
       bmax_(determine_bmax(var_map, *nucleusA_, *nucleusB_, nucleon_profile_)),
+      smin_(var_map["s-min"].as<double>()),
+      smax_(var_map["s-max"].as<double>()),
       asymmetry_(determine_asym(*nucleusA_, *nucleusB_)),
       event_(var_map),
       output_(var_map) {
@@ -78,17 +80,31 @@ Collider::~Collider() = default;
 
 void Collider::run_events() {
   // The main event loop.
-  for (int n = 0; n < nevents_; ++n) {
+  int n = 0;
+  while (n < nevents_) {
+
     // Sampling the impact parameter also implicitly prepares the nuclei for
     // event computation, i.e. by sampling nucleon positions and participants.
     double b = sample_impact_param();
 
     // Pass the prepared nuclei to the Event.  It computes the entropy profile
     // (thickness grid) and other event observables.
+    event_.trial2D(true);
     event_.compute(*nucleusA_, *nucleusB_, nucleon_profile_);
 
-    // Write event data.
-    output_(n, b, event_);
+    
+    auto mult = event_.multiplicity();
+    
+    if (mult > smin_ and mult < smax_) {
+        event_.trial2D(false);
+        event_.compute(*nucleusA_, *nucleusB_, nucleon_profile_);
+        mult = event_.multiplicity();
+        
+        // Write event data.
+        output_(n, b, event_);
+        n++;
+    }
+
   }
 }
 
