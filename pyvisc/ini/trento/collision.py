@@ -273,7 +273,6 @@ class PbPb5020(Collision):
                   'target':'Pb',
                   'cross_section':7.0,
                   'centrality_file':'pbpb5020_cent.csv',
-                  'centrality_file_b':'pbpb5020_cent_b.csv',
                   'mean_coeff':'0.0',
                   'std_coeff':'2.9',
                   'skew_coeff':'7.3',
