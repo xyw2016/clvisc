@@ -574,9 +574,9 @@ def main():
       '--mode', 'mc'])
 
      # calc the smooth particle spectra
-    call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
-      '--viscous_on', "true", "--reso_decay", "false", 
-      '--mode', 'smooth'])
+    #call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
+    #  '--viscous_on', "true", "--reso_decay", "false", 
+    #  '--mode', 'smooth'])
  
 
 if __name__ == '__main__':
