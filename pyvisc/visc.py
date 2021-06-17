@@ -417,7 +417,7 @@ class CLVisc(object):
 
     #@profile
     def evolve(self, max_loops=1000, save_hypersf=True, save_bulk=False,
-               plot_bulk=True, save_pi=True, force_run_to_maxloop = False, save_vorticity=False,
+               plot_bulk=False, save_pi=True, force_run_to_maxloop = False, save_vorticity=False,
                jet_eloss_src={'switch_on':False, 'start_pos_index':0, 'direction':0.0},
                debug=False):
         '''The main loop of hydrodynamic evolution
