@@ -54,12 +54,30 @@ class CLVisc(object):
         self.h_omega = np.zeros(6*self.size, self.cfg.real)
         self.d_omega = [cl.Buffer(self.ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=self.h_omega),
                         cl.Buffer(self.ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=self.h_omega)]
+        
+        # d_omega_shear  shear voritcity 1/2T * partial_\sigma  
+        self.h_omega_shear1 = np.zeros(16*self.size, self.cfg.real)
+        self.d_omega_shear1 = [cl.Buffer(self.ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=self.h_omega_shear1),
+                        cl.Buffer(self.ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=self.h_omega_shear1)]
+        
+        self.h_omega_shear2 = np.zeros(4*self.size, self.cfg.real)
+        self.d_omega_shear2 = [cl.Buffer(self.ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=self.h_omega_shear2),
+                        cl.Buffer(self.ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=self.h_omega_shear2)]
+        
+        
+        # d_omega_shear  accT voritcity 
+        self.h_omega_accT = np.zeros(6*self.size, self.cfg.real)
+        self.d_omega_accT = [cl.Buffer(self.ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=self.h_omega_accT),
+                        cl.Buffer(self.ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=self.h_omega_accT)]
 
         # in case one wants to save omega^{mu} vector
         self.a_omega_mu = cl_array.empty(self.queue, 4*self.size, self.cfg.real)
 
         # get the vorticity on the freeze out hypersurface
         self.d_omega_sf = cl.Buffer(self.ctx, mf.READ_WRITE, size=9000000*self.cfg.sz_real)
+        self.d_omega_shear1_sf = cl.Buffer(self.ctx, mf.READ_WRITE, size=24000000*self.cfg.sz_real)
+        self.d_omega_shear2_sf = cl.Buffer(self.ctx, mf.READ_WRITE, size=6000000*self.cfg.sz_real)
+        self.d_omega_accT_sf = cl.Buffer(self.ctx, mf.READ_WRITE, size=9000000*self.cfg.sz_real)
 
         # velocity difference between u_visc and u_ideal* for correction
         self.d_udiff = cl.Buffer(self.ctx, mf.READ_WRITE, size=self.ideal.h_ev1.nbytes)
@@ -304,6 +322,16 @@ class CLVisc(object):
         self.kernel_vorticity.omega(self.queue, (NX, NY, NZ), None,
                 self.ideal.d_ev[0], self.ideal.d_ev[1], self.d_omega[1],
                 self.eos_table, self.ideal.tau).wait()
+        
+        
+        self.kernel_vorticity.omega_shear(self.queue, (NX, NY, NZ), None,
+                self.ideal.d_ev[0], self.ideal.d_ev[1], self.d_omega_shear1[1],self.d_omega_shear2[1],
+                self.eos_table,self.ideal.tau).wait()
+        
+        
+        self.kernel_vorticity.omega_accT(self.queue, (NX, NY, NZ), None,
+                self.ideal.d_ev[0], self.ideal.d_ev[1], self.d_omega_accT[1],
+                self.eos_table,self.ideal.tau).wait()
 
         if save_data:
             self.kernel_vorticity.omega_mu(self.queue, (NX*NY*NZ, ), None,
@@ -353,6 +381,9 @@ class CLVisc(object):
                     self.ideal.d_ev_old, self.ideal.d_ev[1],
                     self.d_pi_old, self.d_pi[1],
                     self.d_omega_sf, self.d_omega[0], self.d_omega[1],
+                    self.d_omega_shear1_sf,self.d_omega_shear1[0],self.d_omega_shear1[1],
+                    self.d_omega_shear2_sf,self.d_omega_shear2[0],self.d_omega_shear2[1],
+                    self.d_omega_accT_sf,self.d_omega_accT[0],self.d_omega_accT[1],
                     self.cfg.real(self.tau_old), self.cfg.real(tau_new)).wait()
 
             # update with current tau and d_ev[1], d_pi[1] and d_omega[1]
@@ -360,6 +391,9 @@ class CLVisc(object):
                             self.ideal.d_ev[1]).wait()
             cl.enqueue_copy(self.queue, self.d_pi_old, self.d_pi[1]).wait()
             cl.enqueue_copy(self.queue, self.d_omega[0], self.d_omega[1]).wait()
+            cl.enqueue_copy(self.queue, self.d_omega_shear1[0], self.d_omega_shear1[1]).wait()
+            cl.enqueue_copy(self.queue, self.d_omega_shear2[0], self.d_omega_shear2[1]).wait()
+            cl.enqueue_copy(self.queue, self.d_omega_accT[0], self.d_omega_accT[1]).wait()
             self.tau_old = tau_new
 
 
@@ -405,7 +439,27 @@ class CLVisc(object):
             print("vorticity omega_{mu, nu} on surface is saved to", out_path)
             np.savetxt(out_path, omega_mu.reshape(self.ideal.num_of_sf, 6),
                        fmt='%.6e', header = 'omega^{01, 02, 03, 12, 13, 23}')
+            
+            omega_shear1 = np.empty(16*num_of_sf, dtype=self.cfg.real)
+            cl.enqueue_copy(self.queue, omega_shear1, self.d_omega_shear1_sf).wait()
+            out_path = os.path.join(self.cfg.fPathOut, 'omegamu_shear1_sf.dat')
+            print("vorticity omega_{mu, nu} on surface is saved to", out_path)
+            np.savetxt(out_path, omega_shear1.reshape(self.ideal.num_of_sf, 16),
+                       fmt='%.6e', header = 'omega^{01, 02, 03, 12, 13, 23}')
 
+            omega_shear2 = np.empty(4*num_of_sf, dtype=self.cfg.real)
+            cl.enqueue_copy(self.queue, omega_shear2, self.d_omega_shear2_sf).wait()
+            out_path = os.path.join(self.cfg.fPathOut, 'omegamu_shear2_sf.dat')
+            print("vorticity omega_{mu, nu} on surface is saved to", out_path)
+            np.savetxt(out_path, omega_shear2.reshape(self.ideal.num_of_sf, 4),
+                       fmt='%.6e', header = 'omega^{01, 02, 03, 12, 13, 23}')
+            
+            omega_accT = np.empty(6*num_of_sf, dtype=self.cfg.real)
+            cl.enqueue_copy(self.queue, omega_accT, self.d_omega_accT_sf).wait()
+            out_path = os.path.join(self.cfg.fPathOut, 'omegamu_accT_sf.dat')
+            print("vorticity omega_{mu, nu} on surface is saved to", out_path)
+            np.savetxt(out_path, omega_accT.reshape(self.ideal.num_of_sf, 6),
+                       fmt='%.6e', header = 'omega^{01, 02, 03, 12, 13, 23}')
 
     def update_time(self, loop):
         self.ideal.update_time(loop)

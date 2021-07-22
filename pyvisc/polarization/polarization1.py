@@ -25,7 +25,7 @@ class Polarization(object):
     '''The pyopencl version for lambda polarisation,
     initialize with freeze out hyper surface and omega^{mu}
     on freeze out hyper surface.'''
-    def __init__(self, fpath,T=0.165, Mu=0.0,mass=1.116,path="./", Baryon_on = False,gpu_id = 0,themal=True,shear=False,accT=False):
+    def __init__(self, fpath,T=0.165, Mu=0.0,mass=1.115,path="./", Baryon_on = False,gpu_id = 0,themal=True,shear=False,accT=False):
         '''Param:
              sf: the freeze out hypersf ds0,ds1,ds2,ds3,vx,vy,veta,etas
              omega: omega^tau, x, y, etas
@@ -218,7 +218,7 @@ def pt_integral(spec_along_pt, ptlo=0.0, pthi=3.0):
 
 def calc_pol_th(fpath):
     
-    pol = Polarization(fpath,themal=True,shear=True,accT=True)
+    pol = Polarization(fpath,themal=True,shear=False,accT=False)
 
     ny,npt, nphi = mom.NY, mom.NPT, mom.NPHI
     momentum_list = np.zeros((ny*npt*nphi, 4), dtype=np.float32)
@@ -266,158 +266,99 @@ def calc_pol_th(fpath):
                 polar_phi_Y_lrf[k,j,i] = pt_integral(spec_along_PT,ptlo=0.0,pthi=3.0)/(3.0)
 
             spec_along_y = polar_phi_Y[k,:,i]
-            polar_phi[k,i] = rapidity_integral(spec_along_y,ylo=-1,yhi=0)*2.0
+            polar_phi[k,i] = rapidity_integral(spec_along_y,ylo=-1,yhi=1)
 
             spec_along_y = polar_phi_Y_lrf[k,:,i]
-            polar_phi_lrf[k,i] = rapidity_integral(spec_along_y,ylo=-1,yhi=0)*2.0
+            polar_phi_lrf[k,i] = rapidity_integral(spec_along_y,ylo=-1,yhi=1)
 
     polar_phi = np.column_stack((mom.PHI,polar_phi))
-    polar_phi_lrf = np.column_stack((mom.PHI,polar_phi_lrf))
-    np.savetxt('%s/polar_th_-1.dat'%fpath, polar_phi)
-    np.savetxt('%s/polar_th_-1_lrf.dat'%fpath, polar_phi_lrf)
-
-
-    polar_phi = np.zeros((mom.NPHI,4))
-    polar_phi_Y = np.zeros((mom.NPHI,mom.NY,4))
-
-    polar_phi_lrf = np.zeros((mom.NPHI,4))
-    polar_phi_Y_lrf = np.zeros((mom.NPHI,mom.NY,4))
-
-    for i in range(4):
-        for k, phi in enumerate(mom.PHI):
-            for j, Y in enumerate(mom.Y):
-                spec_along_PT = polar[j,:,k,i]
-                polar_phi_Y[k,j,i] = pt_integral(spec_along_PT,ptlo=0.0,pthi=3.0)/(3.0)
-
-                spec_along_PT = pol_lrf[j,:,k,i]
-                polar_phi_Y_lrf[k,j,i] = pt_integral(spec_along_PT,ptlo=0.0,pthi=3.0)/(3.0)
-
-            spec_along_y = polar_phi_Y[k,:,i]
-            polar_phi[k,i] = rapidity_integral(spec_along_y,ylo=0,yhi=1)*2.0
-
-            spec_along_y = polar_phi_Y_lrf[k,:,i]
-            polar_phi_lrf[k,i] = rapidity_integral(spec_along_y,ylo=0,yhi=1)*2.0
-
-    polar_phi = np.column_stack((mom.PHI,polar_phi))
-    polar_phi_lrf = np.column_stack((mom.PHI,polar_phi_lrf))
-    np.savetxt('%s/polar_th_01.dat'%fpath, polar_phi)
-    np.savetxt('%s/polar_th_lrf_01.dat'%fpath, polar_phi_lrf)
-
-
-    polar_phi = np.zeros((mom.NPHI,4))
-    polar_phi_Y = np.zeros((mom.NPHI,mom.NY,4))
-
-    polar_phi_lrf = np.zeros((mom.NPHI,4))
-    polar_phi_Y_lrf = np.zeros((mom.NPHI,mom.NY,4))
-
-    for i in range(4):
-        for k, phi in enumerate(mom.PHI):
-            for j, Y in enumerate(mom.Y):
-                spec_along_PT = polar[j,:,k,i]
-                polar_phi_Y[k,j,i] = pt_integral(spec_along_PT,ptlo=0.0,pthi=3.0)/(3.0)
-
-                spec_along_PT = pol_lrf[j,:,k,i]
-                polar_phi_Y_lrf[k,j,i] = pt_integral(spec_along_PT,ptlo=0.0,pthi=3.0)/(3.0)
-
-            spec_along_y = polar_phi_Y[k,:,i]
-            polar_phi[k,i] = rapidity_integral(spec_along_y,ylo=0,yhi=1)
-
-            spec_along_y = polar_phi_Y_lrf[k,:,i]
-            polar_phi_lrf[k,i] = rapidity_integral(spec_along_y,ylo=0,yhi=1)
-
-    polar_phi = np.column_stack((mom.PHI,polar_phi))
-    polar_phi_lrf = np.column_stack((mom.PHI,polar_phi_lrf))
-    np.savetxt('%s/polar_th_11.dat'%fpath, polar_phi)
-    np.savetxt('%s/polar_th_lrf_11.dat'%fpath, polar_phi_lrf)
-
-
+    np.savetxt('%s/polar_th.dat'%fpath, polar_phi)
+    np.savetxt('%s/polar_th_lrf.dat'%fpath, polar_phi)
     #print (density[10,10,10])
 
 
-    # polar, density, pol_lrf = pol.get_shear()
-
-    # #polar, density, pol_lrf = pol.get(momentum_list)
-    
-    # polar[:,0] = polar[:,0]/density
-    # polar[:,1] = polar[:,1]/density
-    # polar[:,2] = polar[:,2]/density
-    # polar[:,3] = polar[:,3]/density
-    
-    # polar = polar.reshape(mom.NY,mom.NPT,mom.NPHI,4)
-    # pol_lrf = pol_lrf.reshape(mom.NY,mom.NPT,mom.NPHI,4)
-    # density = density.reshape(mom.NY,mom.NPT,mom.NPHI)
-    
-    # polar_phi = np.zeros((mom.NPHI,4))
-    # polar_phi_Y = np.zeros((mom.NPHI,mom.NY,4))
-
-    # polar_phi_lrf = np.zeros((mom.NPHI,4))
-    # polar_phi_Y_lrf = np.zeros((mom.NPHI,mom.NY,4))
-
-    # for i in range(4):
-    #     for k, phi in enumerate(mom.PHI):
-    #         for j, Y in enumerate(mom.Y):
-    #             spec_along_PT = polar[j,:,k,i]
-    #             polar_phi_Y[k,j,i] = pt_integral(spec_along_PT,ptlo=0.0,pthi=3.0)/(3.0)
-
-    #             spec_along_PT = pol_lrf[j,:,k,i]
-    #             polar_phi_Y_lrf[k,j,i] = pt_integral(spec_along_PT,ptlo=0.0,pthi=3.0)/(3.0)
-
-    #         spec_along_y = polar_phi_Y[k,:,i]
-    #         polar_phi[k,i] = rapidity_integral(spec_along_y,ylo=-1,yhi=1)
-
-    #         spec_along_y = polar_phi_Y_lrf[k,:,i]
-    #         polar_phi_lrf[k,i] = rapidity_integral(spec_along_y,ylo=-1,yhi=1)
-
-    # polar_phi = np.column_stack((mom.PHI,polar_phi))
-    # polar_phi_lrf = np.column_stack((mom.PHI,polar_phi_lrf))
-    # np.savetxt('%s/polar_shear.dat'%fpath, polar_phi)
-    # np.savetxt('%s/polar_shear_lrf.dat'%fpath, polar_phi_lrf)
-    #print (density[10,10,10])
-
-    #polar, density, pol_lrf = pol.get_accT()
+    #polar, density, pol_lrf = pol.get_shear()
 
     #polar, density, pol_lrf = pol.get(momentum_list)
     
-    # polar[:,0] = polar[:,0]/density
-    # polar[:,1] = polar[:,1]/density
-    # polar[:,2] = polar[:,2]/density
-    # polar[:,3] = polar[:,3]/density
-    
-    # polar = polar.reshape(mom.NY,mom.NPT,mom.NPHI,4)
-    # pol_lrf = pol_lrf.reshape(mom.NY,mom.NPT,mom.NPHI,4)
-    # density = density.reshape(mom.NY,mom.NPT,mom.NPHI)
-    
-    # polar_phi = np.zeros((mom.NPHI,4))
-    # polar_phi_Y = np.zeros((mom.NPHI,mom.NY,4))
+    #polar[:,0] = polar[:,0]/density
+    #polar[:,1] = polar[:,1]/density
+    #polar[:,2] = polar[:,2]/density
+    #polar[:,3] = polar[:,3]/density
+    #
+    #polar = polar.reshape(mom.NY,mom.NPT,mom.NPHI,4)
+    #pol_lrf = pol_lrf.reshape(mom.NY,mom.NPT,mom.NPHI,4)
+    #density = density.reshape(mom.NY,mom.NPT,mom.NPHI)
+    #
+    #polar_phi = np.zeros((mom.NPHI,4))
+    #polar_phi_Y = np.zeros((mom.NPHI,mom.NY,4))
 
-    # polar_phi_lrf = np.zeros((mom.NPHI,4))
-    # polar_phi_Y_lrf = np.zeros((mom.NPHI,mom.NY,4))
+    #polar_phi_lrf = np.zeros((mom.NPHI,4))
+    #polar_phi_Y_lrf = np.zeros((mom.NPHI,mom.NY,4))
 
-    # for i in range(4):
-    #     for k, phi in enumerate(mom.PHI):
-    #         for j, Y in enumerate(mom.Y):
-    #             spec_along_PT = polar[j,:,k,i]
-    #             polar_phi_Y[k,j,i] = pt_integral(spec_along_PT,ptlo=0.0,pthi=3.0)/(3.0)
+    #for i in range(4):
+    #    for k, phi in enumerate(mom.PHI):
+    #        for j, Y in enumerate(mom.Y):
+    #            spec_along_PT = polar[j,:,k,i]
+    #            polar_phi_Y[k,j,i] = pt_integral(spec_along_PT,ptlo=0.0,pthi=3.0)/(3.0)
 
-    #             spec_along_PT = pol_lrf[j,:,k,i]
-    #             polar_phi_Y_lrf[k,j,i] = pt_integral(spec_along_PT,ptlo=0.0,pthi=3.0)/(3.0)
+    #            spec_along_PT = pol_lrf[j,:,k,i]
+    #            polar_phi_Y_lrf[k,j,i] = pt_integral(spec_along_PT,ptlo=0.0,pthi=3.0)/(3.0)
 
-    #         spec_along_y = polar_phi_Y[k,:,i]
-    #         polar_phi[k,i] = rapidity_integral(spec_along_y,ylo=-1,yhi=1)
+    #        spec_along_y = polar_phi_Y[k,:,i]
+    #        polar_phi[k,i] = rapidity_integral(spec_along_y,ylo=-1,yhi=1)
 
-    #         spec_along_y = polar_phi_Y_lrf[k,:,i]
-    #         polar_phi_lrf[k,i] = rapidity_integral(spec_along_y,ylo=-1,yhi=1)
+    #        spec_along_y = polar_phi_Y_lrf[k,:,i]
+    #        polar_phi_lrf[k,i] = rapidity_integral(spec_along_y,ylo=-1,yhi=1)
 
-    # polar_phi = np.column_stack((mom.PHI,polar_phi))
-    # polar_phi_lrf = np.column_stack((mom.PHI,polar_phi_lrf))
-    # np.savetxt('%s/polar_accT.dat'%fpath, polar_phi)
-    # np.savetxt('%s/polar_accT_lrf.dat'%fpath, polar_phi_lrf)
+    #polar_phi = np.column_stack((mom.PHI,polar_phi))
+    #np.savetxt('%s/polar_shear.dat'%fpath, polar_phi)
+    #np.savetxt('%s/polar_shear_lrf.dat'%fpath, polar_phi)
+    ##print (density[10,10,10])
+
+    #polar, density, pol_lrf = pol.get_accT()
+
+    ##polar, density, pol_lrf = pol.get(momentum_list)
+    #
+    #polar[:,0] = polar[:,0]/density
+    #polar[:,1] = polar[:,1]/density
+    #polar[:,2] = polar[:,2]/density
+    #polar[:,3] = polar[:,3]/density
+    #
+    #polar = polar.reshape(mom.NY,mom.NPT,mom.NPHI,4)
+    #pol_lrf = pol_lrf.reshape(mom.NY,mom.NPT,mom.NPHI,4)
+    #density = density.reshape(mom.NY,mom.NPT,mom.NPHI)
+    #
+    #polar_phi = np.zeros((mom.NPHI,4))
+    #polar_phi_Y = np.zeros((mom.NPHI,mom.NY,4))
+
+    #polar_phi_lrf = np.zeros((mom.NPHI,4))
+    #polar_phi_Y_lrf = np.zeros((mom.NPHI,mom.NY,4))
+
+    #for i in range(4):
+    #    for k, phi in enumerate(mom.PHI):
+    #        for j, Y in enumerate(mom.Y):
+    #            spec_along_PT = polar[j,:,k,i]
+    #            polar_phi_Y[k,j,i] = pt_integral(spec_along_PT,ptlo=0.0,pthi=3.0)/(3.0)
+
+    #            spec_along_PT = pol_lrf[j,:,k,i]
+    #            polar_phi_Y_lrf[k,j,i] = pt_integral(spec_along_PT,ptlo=0.0,pthi=3.0)/(3.0)
+
+    #        spec_along_y = polar_phi_Y[k,:,i]
+    #        polar_phi[k,i] = rapidity_integral(spec_along_y,ylo=-1,yhi=1)
+
+    #        spec_along_y = polar_phi_Y_lrf[k,:,i]
+    #        polar_phi_lrf[k,i] = rapidity_integral(spec_along_y,ylo=-1,yhi=1)
+
+    #polar_phi = np.column_stack((mom.PHI,polar_phi))
+    #np.savetxt('%s/polar_accT.dat'%fpath, polar_phi)
+    #np.savetxt('%s/polar_accT_lrf.dat'%fpath, polar_phi)
     #print (density[10,10,10])
 
 if __name__ == '__main__':
 
     for i in tqdm(range(0,1000)):
-        fpath = '/media/xywu/disk21/physics/code/clvisc/new/clvisc_git/clvisc/pyvisc/results/auau200_results_ampt/etas0p08_kfactor1p4_wo_test/20_50/event%s'%i
+        fpath = '/media/xywu/disk21/physics/code/clvisc/new/clvisc_git/clvisc/pyvisc/results/auau200_results_ampt/etas0p08_kfactor1p4_wo_hz/20_50/event%s'%i
         calc_pol_th(fpath)
         
     

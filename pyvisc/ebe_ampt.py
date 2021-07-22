@@ -3,7 +3,7 @@
 #email: lgpang@qq.com
 
 import numpy as np
-from subprocess import call
+from subprocess import call,Popen
 import os
 from time import time
 from glob import glob
@@ -55,19 +55,19 @@ def read_p4x4(cent='30_35', idx=0,
 def event_by_event(fout, cent='30_35', idx=0, etaos=0.0, system = 'auau200',
                    fname_ini='/lustre/nyx/hyihp/lpang/hdf5_data/auau39.h5', gpu_id = 3,
                    switch_off_longitudinal_fluctuations = False, force_bjorken = False,
-                   eos_type="lattice_pce150"):
+                   eos_type="lattice_pce150",kfactor = 1.0):
     ''' Run event_by_event hydro, with initial condition from smearing on the particle list'''
     if not os.path.exists(fout):
         os.mkdir(fout)
-    cfg.NX = 201
-    cfg.NY = 201
-    cfg.NZ = 121
+    cfg.NX = 121 
+    cfg.NY = 121
+    cfg.NZ = 201
 
     cfg.DT = 0.01
     cfg.DX = 0.16
     cfg.DY = 0.16
-    cfg.DZ = 0.16
-    cfg.ntskip = 32
+    cfg.DZ = 0.12
+    cfg.ntskip = 10 
     cfg.nzskip = 2
     cfg.nxskip = 2
     cfg.nyskip = 2
@@ -87,7 +87,7 @@ def event_by_event(fout, cent='30_35', idx=0, etaos=0.0, system = 'auau200',
     #cfg.TFRZ = 0.105
 
     #cfg.TFRZ = 0.137
-    cfg.TFRZ = 0.100
+    cfg.TFRZ = 0.165
 
     cfg.TAU0 = 0.4
 
@@ -123,21 +123,21 @@ def event_by_event(fout, cent='30_35', idx=0, etaos=0.0, system = 'auau200',
     if force_bjorken:
         if cfg.eos_type == "lattice_pce150":
             # KFACTOR=1.4 for etaos = 0.08; KFACTOR = 1.2 for etaos=0.16
-            visc.smear_from_p4x4(parton_list, SIGR=0.6, SIGZ=0.6, KFACTOR=1.2, force_bjorken=True)
+            visc.smear_from_p4x4(parton_list, SIGR=0.6, SIGZ=0.6, KFACTOR=kfactor, force_bjorken=True)
         elif cfg.eos_type == "first_order":
-            visc.smear_from_p4x4(parton_list, SIGR=0.6, SIGZ=0.6, KFACTOR=0.8, force_bjorken=True)
+            visc.smear_from_p4x4(parton_list, SIGR=0.6, SIGZ=0.6, KFACTOR=kfactor, force_bjorken=True)
     elif switch_off_longitudinal_fluctuations:
         heta = create_longitudinal_profile(cfg)
-        visc.smear_from_p4x4(parton_list, SIGR=0.6, SIGZ=0.6, KFACTOR=1.4, longitudinal_profile=heta)
+        visc.smear_from_p4x4(parton_list, SIGR=0.6, SIGZ=0.6, KFACTOR=kfactor, longitudinal_profile=heta)
     else:
         if etaos >= 0.16:
-            visc.smear_from_p4x4(parton_list, SIGR=0.6, SIGZ=0.6, KFACTOR=1.2)
+            visc.smear_from_p4x4(parton_list, SIGR=0.6, SIGZ=0.6, KFACTOR=kfactor)
         elif etaos >= 0.08:
-            visc.smear_from_p4x4(parton_list, SIGR=0.6, SIGZ=0.6, KFACTOR=1.4)
+            visc.smear_from_p4x4(parton_list, SIGR=0.6, SIGZ=0.6, KFACTOR=kfactor)
         else:
-            visc.smear_from_p4x4(parton_list, SIGR=0.6, SIGZ=0.6, KFACTOR=1.5)
+            visc.smear_from_p4x4(parton_list, SIGR=0.6, SIGZ=0.6, KFACTOR=kfactor)
 
-    visc.evolve(max_loops=4000, save_hypersf=True, save_bulk=True, save_vorticity=True)
+    visc.evolve(max_loops=4000, save_hypersf=True, save_bulk=False, save_vorticity=True)
 
     # test whether queue.finish() fix the opencl memory leak problem
     visc.queue.finish()
@@ -148,7 +148,7 @@ def event_by_event(fout, cent='30_35', idx=0, etaos=0.0, system = 'auau200',
 
 if __name__ == '__main__':
     import sys
-    if len(sys.argv) != 8:
+    if len(sys.argv) != 9:
         print("Usage: python ebe.py collision_system centrality_range  etaos")
         exit()
 
@@ -160,12 +160,13 @@ if __name__ == '__main__':
     end_id = int(sys.argv[6])
     #IEOS = int(sys.argv[7])
     eos_type = sys.argv[7]
+    kfactor = np.float32(sys.argv[8])
 
-    path = '/lustre/nyx/hyihp/lpang/trento_ebe_hydro/%s_results_ampt/etas%s/%s/'%(collision_system,
-              etaos, cent)
+    path = '/media/xywu/disk21/physics/code/clvisc/new/clvisc_git/clvisc/pyvisc/results/%s_results_ampt/etas%s_kfactor%s_wo_test/%s/'%(collision_system,
+              etaos, kfactor,cent)
     path = path.replace('.', 'p')
 
-    fname_ini='/lustre/nyx/hyihp/lpang/hdf5_data/%s.h5'%collision_system
+    fname_ini='/media/xywu/disk21/physics/code/clvisc/new/clvisc_git/clvisc/h5file/%s.h5'%collision_system
 
     if not os.path.exists(path):
         try:
@@ -176,23 +177,23 @@ if __name__ == '__main__':
     for idx in xrange(start_id, end_id):
         fpath_out = path + 'event%s'%(idx)
         # skip the events from a previous run
-        if os.path.exists(fpath_out):
-            continue
+        #if os.path.exists(fpath_out):
+        #    continue
 
-        try:
-            event_by_event(fpath_out, cent, idx, etaos=etaos, system=collision_system,
-                       fname_ini=fname_ini, gpu_id=gpuid, eos_type=eos_type)
-        except:
-                print("Unexpected error:", sys.exc_info()[0])
+        #try:
+        event_by_event(fpath_out, cent, idx, etaos=etaos, system=collision_system,
+                fname_ini=fname_ini, gpu_id=gpuid, eos_type=eos_type,kfactor = kfactor)
+        #except:
+        #        print("Unexpected error:", sys.exc_info()[0])
 
         viscous_on = "true"
         if etaos < 0.0001: viscous_on = "false"
         # get particle spectra from MC sampling and force decay
-        call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
-          '--viscous_on', viscous_on, "--reso_decay", "true", "--nsampling", "2000",
-          '--mode', 'mc'])
+        #Popen(['python', 'spec.py', '--event_dir', cfg.fPathOut,
+        #  '--viscous_on', viscous_on, "--reso_decay", "true", "--nsampling", "2000",
+        #  '--mode', 'mc'])
     
          # calc the smooth particle spectra
-        call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
-          '--viscous_on', viscous_on, "--reso_decay", "false", 
-          '--mode', 'smooth'])
+        #call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
+        #  '--viscous_on', viscous_on, "--reso_decay", "false", 
+        #  '--mode', 'smooth'])

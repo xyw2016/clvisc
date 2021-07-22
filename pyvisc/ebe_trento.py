@@ -238,18 +238,18 @@ def ebehydro(fpath, cent='0_5', etaos=0.12, gpu_id=0, system='pbpb2760', boost_i
 
 
 
-    visc.ideal.load_ini(ev)
+    #visc.ideal.load_ini(ev)
 
-    visc.evolve(max_loops=4000, save_hypersf=True, save_bulk=False, save_vorticity=False)
+    #visc.evolve(max_loops=4000, save_hypersf=True, save_bulk=False, save_vorticity=False)
 
     write_config(cfg, comments)
     t1 = time()
     print('finished. Total time: {dtime}'.format(dtime = t1-t0))
 
     # get particle spectra from MC sampling and force decay
-    call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
-      '--viscous_on', "true", "--reso_decay", "true", "--nsampling", "2000",
-      '--mode', 'mc'])
+    #call(['python', 'spec.py', '--event_dir', cfg.fPathOut,
+    #  '--viscous_on', "true", "--reso_decay", "true", "--nsampling", "2000",
+    #  '--mode', 'mc'])
 
      # calc the smooth particle spectra
     #call(['python', 'spec.py', '--event_dir', cfg.fPathOut,

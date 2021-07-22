@@ -510,6 +510,15 @@ __kernel void visc_hypersf(__global real8  * d_sf,
                           __global real * d_omega_sf,
                           __global real * d_omega_old,
                           __global real * d_omega_new,
+                          __global real * d_omega_shear1_sf,
+                          __global real * d_omega_shear1_old,
+                          __global real * d_omega_shear1_new,
+                          __global real * d_omega_shear2_sf,
+                          __global real * d_omega_shear2_old,
+                          __global real * d_omega_shear2_new,
+                          __global real * d_omega_accT_sf,
+                          __global real * d_omega_accT_old,
+                          __global real * d_omega_accT_new,
 #endif
                           const real time_old,
                           const real time_new) {
@@ -615,6 +624,35 @@ __kernel void visc_hypersf(__global real8  * d_sf,
                 d_omega_sf[6*id_ + 3] = centroid_intp(d_omega_old, d_omega_new, mass_center, 3, i, j, k, 6);
                 d_omega_sf[6*id_ + 4] = centroid_intp(d_omega_old, d_omega_new, mass_center, 4, i, j, k, 6);
                 d_omega_sf[6*id_ + 5] = centroid_intp(d_omega_old, d_omega_new, mass_center, 5, i, j, k, 6);
+                
+		d_omega_shear1_sf[16*id_ + 0] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 0, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 1] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 1, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 2] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 2, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 3] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 3, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 4] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 4, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 5] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 5, i, j, k, 16);
+		d_omega_shear1_sf[16*id_ + 6] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 6, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 7] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 7, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 8] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 8, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 9] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 9, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 10] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 10, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 11] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 11, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 12] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 12, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 13] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 13, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 14] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 14, i, j, k, 16);
+                d_omega_shear1_sf[16*id_ + 15] = centroid_intp(d_omega_shear1_old, d_omega_shear1_new, mass_center, 15, i, j, k, 16);
+		
+		d_omega_shear2_sf[4*id_ + 0] = centroid_intp(d_omega_shear2_old, d_omega_shear2_new, mass_center, 0, i, j, k, 4);
+                d_omega_shear2_sf[4*id_ + 1] = centroid_intp(d_omega_shear2_old, d_omega_shear2_new, mass_center, 1, i, j, k, 4);
+                d_omega_shear2_sf[4*id_ + 2] = centroid_intp(d_omega_shear2_old, d_omega_shear2_new, mass_center, 2, i, j, k, 4);
+                d_omega_shear2_sf[4*id_ + 3] = centroid_intp(d_omega_shear2_old, d_omega_shear2_new, mass_center, 3, i, j, k, 4);
+                
+		d_omega_accT_sf[6*id_ + 0] = centroid_intp(d_omega_accT_old, d_omega_accT_new, mass_center, 0, i, j, k, 6);
+                d_omega_accT_sf[6*id_ + 1] = centroid_intp(d_omega_accT_old, d_omega_accT_new, mass_center, 1, i, j, k, 6);
+                d_omega_accT_sf[6*id_ + 2] = centroid_intp(d_omega_accT_old, d_omega_accT_new, mass_center, 2, i, j, k, 6);
+                d_omega_accT_sf[6*id_ + 3] = centroid_intp(d_omega_accT_old, d_omega_accT_new, mass_center, 3, i, j, k, 6);
+                d_omega_accT_sf[6*id_ + 4] = centroid_intp(d_omega_accT_old, d_omega_accT_new, mass_center, 4, i, j, k, 6);
+                d_omega_accT_sf[6*id_ + 5] = centroid_intp(d_omega_accT_old, d_omega_accT_new, mass_center, 5, i, j, k, 6);
 #endif
            }
         } // end surface calculation

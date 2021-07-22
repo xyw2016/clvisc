@@ -55,53 +55,72 @@ gala15w = np.array([	0.239578170311,         0.560100842793,
     6.35956346973,          8.03178763212,
     11.5277721009   ])
 
+# NY = 41
+# NPT = 15
+# NPHI = 48
+# INVP = 1/12.0
+
+# # used as rapidity or pseudo-rapidity
+# Y = np.linspace( -8, 8, NY, endpoint=True )
+
+# # used as transverse momentum 
+# PT = INVP * gala15x
+
+# # used as azimuthal angle
+# PHI = np.zeros( NPHI )
+# PHI[0:NPHI/2] = np.pi*(1.0-gaulep48)
+# PHI[NPHI-1:NPHI/2-1:-1] = np.pi*(1.0+gaulep48)
+
+
 NY = 41
-NPT = 15
+NPT = 61
 NPHI = 48
 INVP = 1/12.0
 
 # used as rapidity or pseudo-rapidity
-Y = np.linspace( -8, 8, NY, endpoint=True )
+Y = np.linspace( -2, 2, NY, endpoint=True )
 
 # used as transverse momentum 
-PT = INVP * gala15x
+PT = np.linspace( 0, 3, NPT, endpoint=True )
+PHI = np.linspace( 0, 2*np.pi, NPHI, endpoint=True )
 
 # used as azimuthal angle
-PHI = np.zeros( NPHI )
-PHI[0:NPHI/2] = np.pi*(1.0-gaulep48)
-PHI[NPHI-1:NPHI/2-1:-1] = np.pi*(1.0+gaulep48)
+#PHI = np.zeros( NPHI )
+#PHI[0:NPHI/2] = np.pi*(1.0-gaulep48)
+#PHI[NPHI-1:NPHI/2-1:-1] = np.pi*(1.0+gaulep48)
 
-#print("Y=", Y)
 
-#print("Pt=", PT)
+print("Y=", Y)
+
+print("Pt=", PT)
 
 print("Phi=", PHI)
 
-def pt_integral(spec_along_pt):
-    '''1D integration along transverse momentum'''
-    return (spec_along_pt*gala15w*INVP).sum()
+# def pt_integral(spec_along_pt):
+#     '''1D integration along transverse momentum'''
+#     return (spec_along_pt*gala15w*INVP).sum()
 
-def phi_integral(spec_along_phi):
-    '''1D integration along azimuthal angle'''
-    return np.pi*((spec_along_phi[0:NPHI/2] + 
-        spec_along_phi[NPHI-1:NPHI/2-1:-1])*gaulew48).sum()
+# def phi_integral(spec_along_phi):
+#     '''1D integration along azimuthal angle'''
+#     return np.pi*((spec_along_phi[0:NPHI/2] + 
+#         spec_along_phi[NPHI-1:NPHI/2-1:-1])*gaulew48).sum()
 
-def rapidity_integral(spec_along_y, ylo=-0.5, yhi=0.5):
-    '''1D integration along rapidity/pseudo-rapidity 
-    The spline interpolation and integration is much faster than
-    the interp1d() and quad combination'''
-    #f = interp1d(Y, spec_along_y, kind='cubic')
-    #return quad(f, ylo, yhi, epsrel=1.0E-5)[0]
-    tck = splrep(Y, spec_along_y)
-    return splint(ylo, yhi, tck)
+# def rapidity_integral(spec_along_y, ylo=-0.5, yhi=0.5):
+#     '''1D integration along rapidity/pseudo-rapidity 
+#     The spline interpolation and integration is much faster than
+#     the interp1d() and quad combination'''
+#     #f = interp1d(Y, spec_along_y, kind='cubic')
+#     #return quad(f, ylo, yhi, epsrel=1.0E-5)[0]
+#     tck = splrep(Y, spec_along_y)
+#     return splint(ylo, yhi, tck)
 
-def pt_phi_integral(spec):
-    '''2D integration along pt and phi,
-    The spec is: dN/dYptdptdphi'''
-    spec_along_pt = np.empty(NPT)
-    for i in range(NPT):
-        spec_along_pt[i] = PT[i] * phi_integral(spec[i, :])
-    return pt_integral(spec_along_pt)
+# def pt_phi_integral(spec):
+#     '''2D integration along pt and phi,
+#     The spec is: dN/dYptdptdphi'''
+#     spec_along_pt = np.empty(NPT)
+#     for i in range(NPT):
+#         spec_along_pt[i] = PT[i] * phi_integral(spec[i, :])
+#     return pt_integral(spec_along_pt)
 
 if __name__ == '__main__':
     print(phi_integral(np.sin(0.25*PHI)))

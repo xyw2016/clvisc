@@ -250,7 +250,7 @@ if __name__ == '__main__':
     def test_plot_cs2():
         eos1 = Eos('lattice_pce150')
         eos2 = Eos('hotqcd2014')
-        ed =np.arange(0.0,1.0,0.001)
+        ed =np.arange(0.0,0.2,0.001)
         pr1 = np.zeros_like(ed)
         pr2 = np.zeros_like(ed)
         for i in range(len(ed)):
